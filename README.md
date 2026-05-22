@@ -1,5 +1,5 @@
 <div align="center" justify="center">
-    <img width="15%" src="assets/logo-medtrack.png" alt="Logo do MedTrack"> 
+    <img width="15%" src="docs/_assets/logo-medtrack.png" alt="Logo do MedTrack"> 
     <h1>MedTrack: Aplicação Mobile </h1>
 </div>
 
@@ -8,7 +8,7 @@
 ## Visão Geral
 
 <div align="center">
-  <img src="assets/app-preview.gif" width="30%" alt="Demonstração do MedTrack">
+  <img src="docs/_assets/app-preview.gif" width="30%" alt="Demonstração do MedTrack">
 </div>
 
 O **MedTrack Mobile** é um app Android desenvolvido para auxiliar no acompanhamento correto de medicamentos, unindo **OCR, notificações e acessibilidade** em um só lugar.
@@ -30,7 +30,7 @@ O MedTrack foi desenvolvido seguindo os princípios do **MVVM (Model-View-ViewMo
 - Coroutines para operações assíncronas
 
 <div align="center">
-  <img src="assets/mvvm-diagram.png" width="100%" alt="Diagrama MVVM">
+  <img src="docs/_assets/mvvm-diagram.png" width="100%" alt="Diagrama MVVM">
 </div>
 
 ### 🎨 Interface Gráfica
@@ -43,16 +43,16 @@ Desenvolvida inteiramente com **Jetpack Compose**, a interface prioriza:
 > - ⏳ Temporário (emoji de calendário 📅)
 
 <div align="center">
-  <img src="assets/screen-3.jpg" width="30%" alt="Lista de horários vazia">
-  <img src="assets/screen-4.jpg" width="30%" alt="Lista de horários completa">
+  <img src="docs/_assets/screen-3.jpg" width="30%" alt="Lista de horários vazia">
+  <img src="docs/_assets/screen-4.jpg" width="30%" alt="Lista de horários completa">
 </div>
 
 > 💡 **Pop-ups intuitivos**
 
 <div align="center">
-  <img src="assets/screen-2.jpg" width="30%" alt="Pop-up Editar">
-  <img src="assets/screen-1.jpg" width="30%" alt="Pop-up Erro">
-  <img src="assets/screen-5.jpg" width="30%" alt="Pop-up Sucesso">
+  <img src="docs/_assets/screen-2.jpg" width="30%" alt="Pop-up Editar">
+  <img src="docs/_assets/screen-1.jpg" width="30%" alt="Pop-up Erro">
+  <img src="docs/_assets/screen-5.jpg" width="30%" alt="Pop-up Sucesso">
 </div>
 
 ### 📸 Captura e Reconhecimento (OCR)
@@ -64,7 +64,7 @@ Integramos as poderosas ferramentas do **Google ML Kit (*Text recognition* e *Ob
 > 🎥 Demonstração do OCR identificando: nome do medicamento, dosagem e horários
 
 <div align="center">
-  <img src="assets/ocr-demo.gif" width="30%" alt="Demonstração do OCR">
+  <img src="docs/_assets/ocr-demo.gif" width="30%" alt="Demonstração do OCR">
 </div>
 
 ### 💾 Armazenamento Local
@@ -153,7 +153,7 @@ O **MedTrack Web** é a interface administrativa do sistema, desenvolvida para:
 - 📊 Visualização de relatórios e histórico completo
 
 <div align="center">
-  <img src="assets/medtrack-web.png" width="100%" alt="Dashboard Web">
+  <img src="docs/_assets/medtrack-web.png" width="100%" alt="Dashboard Web">
 </div>
 
 ### Integração Mobile-Web
