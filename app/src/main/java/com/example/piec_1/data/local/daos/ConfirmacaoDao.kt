@@ -17,6 +17,9 @@ interface ConfirmacaoDao {
     @Query("SELECT * FROM confirmacoes WHERE sincronizado = 0")
     suspend fun getConfirmacoesNaoSincronizadas(): List<ConfirmacaoEntity>
 
+    @Query("SELECT * FROM confirmacoes")
+    suspend fun getAll(): List<ConfirmacaoEntity>
+
     @Update
     suspend fun update(confirmacao: ConfirmacaoEntity)
 

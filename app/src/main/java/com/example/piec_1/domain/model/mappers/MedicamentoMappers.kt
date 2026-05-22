@@ -37,6 +37,7 @@ fun MedicamentoEntity.toDomain() = MedicamentoDomain(
     nome = nome,
     compostoAtivo = compostoAtivo,
     dosagem = dosagem,
+    imagemUrl = imagemUrl,
     frequenciaUso = frequenciaUso.toDomain()
 )
 
@@ -45,5 +46,6 @@ fun MedicamentoDomain.toEntity() = MedicamentoEntity(
     nome = nome,
     compostoAtivo = compostoAtivo,
     dosagem = dosagem,
+    imagemUrl = imagemUrl,
     frequenciaUso = frequenciaUso.toEntity()
 )

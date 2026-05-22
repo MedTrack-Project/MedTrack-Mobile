@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.piec_1.data.repository.MedicamentoRepository
 import com.example.piec_1.domain.model.MedicamentoCapturadoDomain
 import com.example.piec_1.utils.exceptions.ConfirmacaoExistenteException
+import com.example.piec_1.utils.exceptions.DoseForaDoHorarioException
 import com.example.piec_1.utils.exceptions.MedicamentoNaoEncontradoException
 import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,6 +51,10 @@ class MedicamentoViewModel @Inject constructor(
                 onError(message)
             } catch (_: ConfirmacaoExistenteException) {
                 val message = "Ja existe uma confirmacao para este horario."
+                _uiState.value = MedicamentoUIState.Error(message)
+                onError(message)
+            } catch (_: DoseForaDoHorarioException) {
+                val message = "Esta dose so pode ser confirmada no horario correto."
                 _uiState.value = MedicamentoUIState.Error(message)
                 onError(message)
             } catch (e: Exception) {

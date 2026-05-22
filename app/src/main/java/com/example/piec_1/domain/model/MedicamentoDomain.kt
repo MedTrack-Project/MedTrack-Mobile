@@ -5,5 +5,6 @@ data class MedicamentoDomain(
     val nome: String,
     val compostoAtivo: String,
     val dosagem: String,
+    val imagemUrl: String?,
     val frequenciaUso: FrequenciaUsoDomain
 )

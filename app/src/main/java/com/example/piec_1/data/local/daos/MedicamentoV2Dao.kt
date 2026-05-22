@@ -11,6 +11,9 @@ interface MedicamentoV2Dao {
     @Query("SELECT * FROM medicamentos_v2")
     suspend fun getAll(): List<MedicamentoEntity>
 
+    @Query("SELECT * FROM medicamentos_v2 WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Long): MedicamentoEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(medicamentos: List<MedicamentoEntity>)
 

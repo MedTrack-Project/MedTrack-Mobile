@@ -24,6 +24,7 @@ fun MedicamentoDto.toDomain() = MedicamentoDomain(
     nome = nome,
     compostoAtivo = compostoAtivo,
     dosagem = dosagem,
+    imagemUrl = imagemUrl,
     frequenciaUso = frequenciaUso.toDomain()
 )
 

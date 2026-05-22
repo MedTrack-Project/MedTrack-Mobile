@@ -5,6 +5,7 @@ data class MedicamentoDto(
     val nome: String,
     val compostoAtivo: String,
     val dosagem: String,
+    val imagemUrl: String? = null,
     val frequenciaUso: FrequenciaUsoDto
 )
 
