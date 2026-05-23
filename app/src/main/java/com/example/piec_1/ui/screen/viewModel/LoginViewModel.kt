@@ -32,6 +32,9 @@ class LoginViewModel @Inject constructor(
     private val _medicamentos = MutableLiveData<List<MedicamentoDomain>>()
     val medicamentos: LiveData<List<MedicamentoDomain>> get() = _medicamentos
 
+    private val _dosesConfirmadas = MutableLiveData<Set<String>>(emptySet())
+    val dosesConfirmadas: LiveData<Set<String>> get() = _dosesConfirmadas
+
     fun login(username: String, password: String) {
         viewModelScope.launch {
             try {
@@ -40,6 +43,7 @@ class LoginViewModel @Inject constructor(
                 Log.d("Login", "Token: ${loginData.token}")
                 _usuario.postValue(loginData.usuario)
                 _medicamentos.postValue(loginData.medicamentos)
+                carregarDosesConfirmadas()
                 _loginResponse.postValue(loginData.token)
             } catch (e: LoginException) {
                 Log.e("Login", "Erro de login: ${e.message}")
@@ -47,6 +51,16 @@ class LoginViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("Login", "Exception: ${e.message}")
                 _errorMessage.postValue("Erro ao tentar fazer login. Tente novamente")
+            }
+        }
+    }
+
+    fun carregarDosesConfirmadas() {
+        viewModelScope.launch {
+            try {
+                _dosesConfirmadas.postValue(medicamentoRepository.buscarChavesDeDosesConfirmadas())
+            } catch (e: Exception) {
+                Log.e("Login", "Erro ao carregar confirmacoes: ${e.message}")
             }
         }
     }

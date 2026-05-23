@@ -9,12 +9,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavType
+import androidx.navigation.navDeepLink
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.piec_1.ui.screen.TelaCamera
 import com.example.piec_1.ui.screen.TelaConfirmacao
+import com.example.piec_1.ui.screen.TelaDoseHorario
 import com.example.piec_1.ui.screen.TelaEsqueciSenha
 import com.example.piec_1.ui.screen.TelaInicial
 import com.example.piec_1.ui.screen.TelaLogin
@@ -79,6 +81,39 @@ fun AppNavigation() {
         composable(AppRoutes.PRINCIPAL) {
             TelaPrincipal(
                 loginViewModel = loginViewModel,
+                onHorarioClick = { item ->
+                    navController.navigate(
+                        AppRoutes.doseHorario(
+                            medicamentoId = item.medicamentoId,
+                            data = item.date.toString(),
+                            horario = item.horario
+                        )
+                    )
+                }
+            )
+        }
+        composable(
+            AppRoutes.DOSE_HORARIO,
+            arguments = listOf(
+                navArgument("medicamentoId") { type = NavType.LongType },
+                navArgument("data") { type = NavType.StringType },
+                navArgument("horario") { type = NavType.StringType }
+            ),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "app://telaDose/{medicamentoId}/{data}/{horario}"
+                }
+            )
+        ) { backStackEntry ->
+            val medicamentoId = backStackEntry.arguments?.getLong("medicamentoId") ?: return@composable
+            val data = backStackEntry.arguments?.getString("data").orEmpty()
+            val horario = backStackEntry.arguments?.getString("horario").orEmpty()
+
+            TelaDoseHorario(
+                medicamentoId = medicamentoId,
+                data = data,
+                horario = horario,
+                onBackClick = { navController.popBackStack() },
                 onScanClick = { navController.navigate(AppRoutes.CAMERA) }
             )
         }
@@ -102,6 +137,7 @@ fun AppNavigation() {
                 cameraViewModel = cameraViewModel,
                 medicamentoViewModel = medicamentoViewModel,
                 onConfirmSuccess = {
+                    loginViewModel.carregarDosesConfirmadas()
                     navController.navigate(AppRoutes.PRINCIPAL) {
                         popUpTo(AppRoutes.PRINCIPAL) { inclusive = true }
                     }

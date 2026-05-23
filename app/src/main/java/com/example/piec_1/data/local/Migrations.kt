@@ -120,3 +120,9 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
         db.execSQL("PRAGMA foreign_keys=ON")
     }
 }
+
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE medicamentos_v2 ADD COLUMN imagemUrl TEXT")
+    }
+}

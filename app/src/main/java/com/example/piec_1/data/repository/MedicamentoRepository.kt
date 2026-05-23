@@ -10,8 +10,10 @@ import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.model.Usuario
 import com.example.piec_1.domain.model.mappers.toDomain
 import com.example.piec_1.domain.model.mappers.toEntity
+import com.example.piec_1.domain.usecase.doseKey
 import com.example.piec_1.domain.usecase.horariosDoDia
 import com.example.piec_1.utils.exceptions.ConfirmacaoExistenteException
+import com.example.piec_1.utils.exceptions.DoseForaDoHorarioException
 import com.example.piec_1.utils.exceptions.MedicamentoNaoEncontradoException
 import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import com.example.piec_1.utils.notifications.NotificationScheduler
@@ -49,6 +51,20 @@ class MedicamentoRepository @Inject constructor(
             usuario = usuario,
             medicamentos = medicamentos
         )
+    }
+
+    suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? = withContext(Dispatchers.IO) {
+        medicamentoV2Dao.getById(medicamentoId)?.toDomain()
+    }
+
+    suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = withContext(Dispatchers.IO) {
+        confirmacaoDao.getAll().map { confirmacao ->
+            doseKey(
+                medicamentoId = confirmacao.medicamentoId,
+                date = LocalDate.parse(confirmacao.data),
+                horario = confirmacao.horario.take(5)
+            )
+        }.toSet()
     }
 
     suspend fun confirmarMedicamento(medicamentoCapturado: MedicamentoCapturadoDomain) = withContext(Dispatchers.IO) {
@@ -134,9 +150,10 @@ class MedicamentoRepository @Inject constructor(
         val horaAtual = LocalTime.now()
         val horariosOrdenados = horarios.sortedBy { LocalTime.parse(it) }
 
-        return horariosOrdenados.firstOrNull {
-            LocalTime.parse(it).isAfter(horaAtual.minusMinutes(30))
-        } ?: horariosOrdenados.lastOrNull() ?: "00:00"
+        return horariosOrdenados.lastOrNull { horario ->
+            val horarioDose = LocalTime.parse(horario)
+            !horarioDose.isAfter(horaAtual)
+        } ?: throw DoseForaDoHorarioException()
     }
 
     private fun normalizarDosagem(dosagem: String): String {

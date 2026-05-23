@@ -22,7 +22,7 @@ import com.example.piec_1.data.local.entity.UsuarioEntity
         NotificacaoEntity::class,
         ConfirmacaoEntity::class,
         ScanQueueItem::class, ],
-    version = 8
+    version = 9
 )
 
 @TypeConverters(Converters::class)
@@ -49,7 +49,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_3_4,
                         MIGRATION_6_7,
-                        MIGRATION_7_8
+                        MIGRATION_7_8,
+                        MIGRATION_8_9
                     )
                     .fallbackToDestructiveMigration(false)
                     .build()

@@ -67,6 +67,7 @@ class NotificationScheduler @Inject constructor(
                 .putString("nome", medicamento.nome)
                 .putString("compostoAtivo", medicamento.compostoAtivo)
                 .putString("horario", horario.toString())
+                .putString("imagemUrl", medicamento.imagemUrl)
                 .build()
 
             val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
@@ -89,6 +90,7 @@ class NotificationScheduler @Inject constructor(
             putExtra("nome", medicamento.nome)
             putExtra("compostoAtivo", medicamento.compostoAtivo)
             putExtra("horario", horario.toString())
+            putExtra("imagemUrl", medicamento.imagemUrl)
             putExtra("isContinuo", true)
         }
         val pendingIntent = PendingIntent.getBroadcast(
@@ -116,6 +118,7 @@ class NotificationScheduler @Inject constructor(
             putExtra("nome", medicamento.nome)
             putExtra("compostoAtivo", medicamento.compostoAtivo)
             putExtra("horario", horario.toString())
+            putExtra("imagemUrl", medicamento.imagemUrl)
             putExtra("isContinuo", false)
             putExtra("dataAgendamento", dataAgendamento.toString())
         }

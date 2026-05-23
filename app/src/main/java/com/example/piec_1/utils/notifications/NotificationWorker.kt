@@ -14,6 +14,7 @@ class NotificationWorker(
         var nome = inputData.getString("nome") ?: return Result.failure()
         val compostoAtivo = inputData.getString("compostoAtivo").orEmpty()
         val horario = inputData.getString("horario") ?: return Result.failure()
+        val imagemUrl = inputData.getString("imagemUrl")
 
         if (nome.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
             nome.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
@@ -21,7 +22,7 @@ class NotificationWorker(
             nome = compostoAtivo.ifBlank { nome }
         }
 
-        NotificationHelper.showNotification(applicationContext, medicamentoId, nome, horario)
+        NotificationHelper.showNotification(applicationContext, medicamentoId, nome, horario, imagemUrl)
 
         return Result.success()
     }

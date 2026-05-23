@@ -12,17 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -32,18 +30,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.piec_1.R
+import com.example.piec_1.domain.model.MedicationItem
 import com.example.piec_1.ui.components.ListaHorarios
 import com.example.piec_1.ui.screen.viewModel.LoginViewModel
 
 @Composable
 fun TelaPrincipal(
     loginViewModel: LoginViewModel,
-    onScanClick: () -> Unit
+    onHorarioClick: (MedicationItem) -> Unit
 ) {
 
     val usuario by loginViewModel.usuario.observeAsState()
     val medicamentos by loginViewModel.medicamentos.observeAsState()
+    val dosesConfirmadas by loginViewModel.dosesConfirmadas.observeAsState(emptySet())
     val isLoading = usuario == null || medicamentos == null
+
+    LaunchedEffect(medicamentos) {
+        if (medicamentos != null) {
+            loginViewModel.carregarDosesConfirmadas()
+        }
+    }
 
     if (isLoading) {
         Box(
@@ -56,7 +62,7 @@ fun TelaPrincipal(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Buscando dados do usuário...",
+                    text = "Buscando dados do usuario...",
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -119,7 +125,7 @@ fun TelaPrincipal(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Olá, ${usuario?.nome ?: "Usuário"}",
+                    text = "Ola, ${usuario?.nome ?: "Usuario"}",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -133,27 +139,11 @@ fun TelaPrincipal(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Box(modifier = Modifier.weight(1f)) {
-                    ListaHorarios(medicamentos = medicamentos ?: emptyList())
-                }
-
-                Button(
-                    onClick = onScanClick,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(vertical = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                    ListaHorarios(
+                        medicamentos = medicamentos ?: emptyList(),
+                        dosesConfirmadas = dosesConfirmadas,
+                        onHorarioClick = onHorarioClick
                     )
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_camera),
-                        contentDescription = "Abrir Câmera",
-                        modifier = Modifier.size(40.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Escanear Medicamento", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

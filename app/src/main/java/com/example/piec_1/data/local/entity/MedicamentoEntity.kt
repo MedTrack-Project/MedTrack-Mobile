@@ -10,5 +10,6 @@ data class MedicamentoEntity(
     val nome: String,
     val compostoAtivo: String,
     val dosagem: String,
+    val imagemUrl: String?,
     @Embedded(prefix = "freq_") val frequenciaUso: FrequenciaUsoEntity
 )

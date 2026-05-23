@@ -1,4 +1,4 @@
-package com.example.piec_1.data.di
+package com.example.piec_1.di
 
 import com.example.piec_1.BuildConfig
 import com.example.piec_1.data.remote.ApiService

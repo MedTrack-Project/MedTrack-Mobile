@@ -1,4 +1,4 @@
-package com.example.piec_1.data.di
+package com.example.piec_1.di
 
 import android.content.Context
 import com.example.piec_1.data.local.AppDatabase
