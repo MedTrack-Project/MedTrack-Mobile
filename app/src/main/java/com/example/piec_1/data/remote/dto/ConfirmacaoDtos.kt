@@ -17,5 +17,6 @@ data class ConfirmacaoResponseDto(
     val data: String,
     val foiTomado: Boolean,
     val observacao: String?,
+    val comprovanteImagemUrl: String? = null,
     val mensagem: String? = null
 )

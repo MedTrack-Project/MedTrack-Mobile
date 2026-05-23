@@ -48,6 +48,7 @@ fun TelaConfirmacao(
     onRetakePhoto: () -> Unit
 ) {
     val medicamento by cameraViewModel.medicamento.observeAsState()
+    val capturedPhotoUri by cameraViewModel.capturedPhotoUri.observeAsState()
     var showEditDialog by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     val medicamentoEditavel = remember(medicamento) {
@@ -89,6 +90,7 @@ fun TelaConfirmacao(
                             loading = true
                             medicamentoViewModel.confirmarMedicamento(
                                 medicamentoCapturado = medicamento!!,
+                                comprovanteImagemUri = capturedPhotoUri,
                                 onSuccess = {
                                     loading = false
                                     onConfirmSuccess()

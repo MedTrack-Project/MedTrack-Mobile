@@ -26,6 +26,9 @@ class CameraViewModel @Inject constructor(
     private val _medicamento = MutableLiveData<MedicamentoCapturadoDomain?>()
     val medicamento: LiveData<MedicamentoCapturadoDomain?> = _medicamento
 
+    private val _capturedPhotoUri = MutableLiveData<Uri?>()
+    val capturedPhotoUri: LiveData<Uri?> = _capturedPhotoUri
+
     private val _framePosition = MutableLiveData<Rect?>()
     val framePosition: LiveData<Rect?> get() = _framePosition
 
@@ -80,6 +83,7 @@ class CameraViewModel @Inject constructor(
     private fun processOnlinePhoto(uri: Uri) {
         viewModelScope.launch {
             try {
+                _capturedPhotoUri.postValue(uri)
                 val file = File(uri.path.orEmpty())
                 val medicamento = scanRepository.scanMedicamento(file)
 

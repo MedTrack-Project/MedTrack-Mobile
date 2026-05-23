@@ -1,5 +1,6 @@
 package com.example.piec_1.ui.screen.viewModel
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -31,6 +32,7 @@ class MedicamentoViewModel @Inject constructor(
 
     fun confirmarMedicamento(
         medicamentoCapturado: MedicamentoCapturadoDomain,
+        comprovanteImagemUri: Uri?,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -38,7 +40,7 @@ class MedicamentoViewModel @Inject constructor(
             _uiState.value = MedicamentoUIState.Loading
 
             try {
-                medicamentoRepository.confirmarMedicamento(medicamentoCapturado)
+                medicamentoRepository.confirmarMedicamento(medicamentoCapturado, comprovanteImagemUri)
                 _uiState.value = MedicamentoUIState.Success("Medicamento confirmado!")
                 onSuccess()
             } catch (_: TokenNaoEncontradoException) {

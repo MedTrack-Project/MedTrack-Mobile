@@ -1,5 +1,7 @@
 package com.example.piec_1.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.example.piec_1.data.local.AppDatabase
 import com.example.piec_1.data.local.entity.ConfirmacaoEntity
 import com.example.piec_1.data.remote.ApiService
@@ -17,17 +19,27 @@ import com.example.piec_1.utils.exceptions.DoseForaDoHorarioException
 import com.example.piec_1.utils.exceptions.MedicamentoNaoEncontradoException
 import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import com.example.piec_1.utils.notifications.NotificationScheduler
+import com.google.gson.Gson
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.io.File
+import java.io.FileInputStream
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import okio.BufferedSink
 
 @Singleton
 class MedicamentoRepository @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val apiService: ApiService,
     database: AppDatabase,
     private val authRepository: AuthRepository,
@@ -36,6 +48,7 @@ class MedicamentoRepository @Inject constructor(
     private val usuarioDao = database.usuarioDao()
     private val medicamentoV2Dao = database.medicamentoV2Dao()
     private val confirmacaoDao = database.confirmacaoDao()
+    private val gson = Gson()
 
     suspend fun sincronizarDadosDoUsuario(token: String): LoginData = withContext(Dispatchers.IO) {
         val authHeader = "Bearer $token"
@@ -67,12 +80,15 @@ class MedicamentoRepository @Inject constructor(
         }.toSet()
     }
 
-    suspend fun confirmarMedicamento(medicamentoCapturado: MedicamentoCapturadoDomain) = withContext(Dispatchers.IO) {
+    suspend fun confirmarMedicamento(
+        medicamentoCapturado: MedicamentoCapturadoDomain,
+        comprovanteImagemUri: Uri?
+    ) = withContext(Dispatchers.IO) {
         val token = authRepository.getToken() ?: throw TokenNaoEncontradoException()
         val medicamentoCorrespondente = encontrarMedicamentoCorrespondente(medicamentoCapturado)
             ?: throw MedicamentoNaoEncontradoException()
 
-        processarConfirmacao(medicamentoCorrespondente, token)
+        processarConfirmacao(medicamentoCorrespondente, token, comprovanteImagemUri)
     }
 
     private suspend fun buscarUsuario(authHeader: String): Usuario {
@@ -105,7 +121,11 @@ class MedicamentoRepository @Inject constructor(
         }
     }
 
-    private suspend fun processarConfirmacao(medicamento: MedicamentoDomain, token: String) {
+    private suspend fun processarConfirmacao(
+        medicamento: MedicamentoDomain,
+        token: String,
+        comprovanteImagemUri: Uri?
+    ) {
         val horarioSelecionado = encontrarHorarioMaisProximo(
             medicamento.frequenciaUso.horariosDoDia().map { it.toString() }
         )
@@ -137,7 +157,11 @@ class MedicamentoRepository @Inject constructor(
             observacao = null
         )
 
-        val response = apiService.confirmarMedicamento("Bearer $token", request)
+        val response = apiService.confirmarMedicamento(
+            token = "Bearer $token",
+            dados = criarParteDados(request),
+            imagem = criarParteImagem(comprovanteImagemUri)
+        )
 
         if (!response.isSuccessful) {
             throw IOException(response.errorBody()?.string() ?: "Erro na API")
@@ -164,5 +188,53 @@ class MedicamentoRepository @Inject constructor(
         return texto.trim()
             .replace(Regex("[^a-zA-Z0-9]"), "")
             .lowercase()
+    }
+
+    private fun criarParteDados(request: ConfirmacaoRequestDto): RequestBody {
+        return gson.toJson(request).toRequestBody("application/json".toMediaType())
+    }
+
+    private fun criarParteImagem(uri: Uri?): MultipartBody.Part? {
+        if (uri == null) return null
+        if (!uri.canOpenImage()) return null
+
+        val requestBody = runCatching { uri.asJpegRequestBody() }.getOrNull() ?: return null
+        return MultipartBody.Part.createFormData(
+            name = "imagem",
+            filename = "confirmacao_${System.currentTimeMillis()}.jpg",
+            body = requestBody
+        )
+    }
+
+    private fun Uri.asJpegRequestBody(): RequestBody {
+        val contentResolver = context.contentResolver
+        val imageMediaType = "image/jpeg".toMediaType()
+
+        return object : RequestBody() {
+            override fun contentType() = imageMediaType
+
+            override fun writeTo(sink: BufferedSink) {
+                val inputStream = runCatching {
+                    contentResolver.openInputStream(this@asJpegRequestBody)
+                }.getOrNull()
+                    ?: path?.let { FileInputStream(File(it)) }
+                    ?: throw IOException("Imagem da confirmacao indisponivel")
+
+                inputStream.use { input ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        val bytesRead = input.read(buffer)
+                        if (bytesRead == -1) break
+                        sink.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun Uri.canOpenImage(): Boolean {
+        return runCatching {
+            context.contentResolver.openInputStream(this)?.use { true } ?: false
+        }.getOrDefault(false) || path?.let { File(it).exists() } == true
     }
 }
