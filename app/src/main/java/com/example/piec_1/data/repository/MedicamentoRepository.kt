@@ -2,6 +2,7 @@ package com.example.piec_1.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.example.piec_1.data.local.AppDatabase
 import com.example.piec_1.data.local.entity.ConfirmacaoEntity
 import com.example.piec_1.data.remote.ApiService
@@ -27,8 +28,10 @@ import java.io.IOException
 import java.io.File
 import java.io.FileInputStream
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.text.Normalizer
 import javax.inject.Inject
 import javax.inject.Singleton
 import okhttp3.MediaType.Companion.toMediaType
@@ -71,24 +74,37 @@ class MedicamentoRepository @Inject constructor(
     }
 
     suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = withContext(Dispatchers.IO) {
-        confirmacaoDao.getAll().map { confirmacao ->
-            doseKey(
-                medicamentoId = confirmacao.medicamentoId,
-                date = LocalDate.parse(confirmacao.data),
-                horario = confirmacao.horario.take(5)
-            )
-        }.toSet()
+        confirmacaoDao.getAll()
+            .filter { it.sincronizado }
+            .map { confirmacao ->
+                doseKey(
+                    medicamentoId = confirmacao.medicamentoId,
+                    date = LocalDate.parse(confirmacao.data),
+                    horario = confirmacao.horario.take(5)
+                )
+            }.toSet()
     }
 
     suspend fun confirmarMedicamento(
         medicamentoCapturado: MedicamentoCapturadoDomain,
-        comprovanteImagemUri: Uri?
+        comprovanteImagemUri: Uri?,
+        medicamentoSelecionadoId: Long? = null,
+        dataSelecionada: String? = null,
+        horarioSelecionado: String? = null
     ) = withContext(Dispatchers.IO) {
         val token = authRepository.getToken() ?: throw TokenNaoEncontradoException()
-        val medicamentoCorrespondente = encontrarMedicamentoCorrespondente(medicamentoCapturado)
+        val medicamentoCorrespondente = medicamentoSelecionadoId
+            ?.let { medicamentoV2Dao.getById(it)?.toDomain() }
+            ?: encontrarMedicamentoCorrespondente(medicamentoCapturado)
             ?: throw MedicamentoNaoEncontradoException()
 
-        processarConfirmacao(medicamentoCorrespondente, token, comprovanteImagemUri)
+        processarConfirmacao(
+            medicamento = medicamentoCorrespondente,
+            token = token,
+            comprovanteImagemUri = comprovanteImagemUri,
+            dataSelecionada = dataSelecionada,
+            horarioSelecionado = horarioSelecionado
+        )
     }
 
     private suspend fun buscarUsuario(authHeader: String): Usuario {
@@ -114,47 +130,69 @@ class MedicamentoRepository @Inject constructor(
     private suspend fun encontrarMedicamentoCorrespondente(
         medicamentoCapturado: MedicamentoCapturadoDomain
     ): MedicamentoDomain? {
-        return medicamentoV2Dao.getAll().map { it.toDomain() }.firstOrNull { medicamentoSalvo ->
-            normalizarString(medicamentoSalvo.nome) == normalizarString(medicamentoCapturado.nome) &&
-                normalizarString(medicamentoSalvo.compostoAtivo) == normalizarString(medicamentoCapturado.compostoAtivo) &&
-                normalizarDosagem(medicamentoSalvo.dosagem) == normalizarDosagem(medicamentoCapturado.dosagem)
-        }
+        return medicamentoV2Dao.getAll()
+            .map { it.toDomain() }
+            .mapNotNull { medicamentoSalvo ->
+                val nomeScore = similaridadeTexto(medicamentoSalvo.nome, medicamentoCapturado.nome)
+                val compostoScore = similaridadeTexto(
+                    medicamentoSalvo.compostoAtivo,
+                    medicamentoCapturado.compostoAtivo
+                )
+
+                if (nomeScore >= MATCH_THRESHOLD && compostoScore >= MATCH_THRESHOLD) {
+                    MedicamentoMatch(
+                        medicamento = medicamentoSalvo,
+                        score = (nomeScore + compostoScore) / 2.0
+                    )
+                } else {
+                    null
+                }
+            }
+            .maxByOrNull { it.score }
+            ?.medicamento
     }
 
     private suspend fun processarConfirmacao(
         medicamento: MedicamentoDomain,
         token: String,
-        comprovanteImagemUri: Uri?
+        comprovanteImagemUri: Uri?,
+        dataSelecionada: String?,
+        horarioSelecionado: String?
     ) {
-        val horarioSelecionado = encontrarHorarioMaisProximo(
+        val horarioConfirmacao = horarioSelecionado
+            ?.take(5)
+            ?.also { validarDoseSelecionada(dataSelecionada, it) }
+            ?: encontrarHorarioMaisProximo(
             medicamento.frequenciaUso.horariosDoDia().map { it.toString() }
         )
-        val dataAtual = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val dataConfirmacao = dataSelecionada?.takeIf { it.isNotBlank() }
+            ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val confirmacaoExistente = confirmacaoDao.getConfirmacao(
             medicamentoId = medicamento.id,
-            data = dataAtual,
-            horario = horarioSelecionado
+            data = dataConfirmacao,
+            horario = horarioConfirmacao
         )
 
-        if (confirmacaoExistente != null) {
+        if (confirmacaoExistente?.sincronizado == true) {
             throw ConfirmacaoExistenteException()
         }
-
-        val confirmacao = ConfirmacaoEntity(
-            medicamentoId = medicamento.id,
-            horario = horarioSelecionado,
-            data = dataAtual,
-            foiTomado = true
-        )
-        val confirmacaoId = confirmacaoDao.insert(confirmacao)
 
         val request = ConfirmacaoRequestDto(
             usuarioId = usuarioDao.getUsuario().id,
             medicamentoId = medicamento.id,
-            horario = horarioSelecionado,
-            data = dataAtual,
+            horario = horarioConfirmacao,
+            data = dataConfirmacao,
             foiTomado = true,
             observacao = null
+        )
+        val imagemDisponivel = comprovanteImagemUri?.canOpenImage() == true
+
+        Log.d(
+            TAG_CONFIRMACAO,
+            "Enviando confirmacao: usuarioId=${request.usuarioId}, " +
+                "medicamentoId=${request.medicamentoId}, data=${request.data}, " +
+                "horario=${request.horario}, foiTomado=${request.foiTomado}, " +
+                "observacao=${request.observacao}, imagemDisponivel=$imagemDisponivel"
         )
 
         val response = apiService.confirmarMedicamento(
@@ -164,30 +202,131 @@ class MedicamentoRepository @Inject constructor(
         )
 
         if (!response.isSuccessful) {
-            throw IOException(response.errorBody()?.string() ?: "Erro na API")
+            val errorBody = response.errorBody()?.string()
+            Log.e(
+                TAG_CONFIRMACAO,
+                "Falha ao sincronizar confirmacao: httpCode=${response.code()}, body=$errorBody"
+            )
+            throw IOException(errorBody ?: "Erro na API")
         }
 
-        confirmacaoDao.update(confirmacao.copy(id = confirmacaoId, sincronizado = true))
+        Log.d(
+            TAG_CONFIRMACAO,
+            "Confirmacao aceita pelo backend: httpCode=${response.code()}, " +
+                "responseId=${response.body()?.id}, " +
+                "comprovanteImagemUrl=${response.body()?.comprovanteImagemUrl}"
+        )
+
+        if (confirmacaoExistente != null) {
+            confirmacaoDao.update(
+                confirmacaoExistente.copy(
+                    foiTomado = true,
+                    sincronizado = true
+                )
+            )
+            Log.d(
+                TAG_ROOM,
+                "Confirmacao local atualizada como sincronizada: id=${confirmacaoExistente.id}, " +
+                    "medicamentoId=${medicamento.id}, data=$dataConfirmacao, horario=$horarioConfirmacao"
+            )
+        } else {
+            val confirmacaoId = confirmacaoDao.insert(
+                ConfirmacaoEntity(
+                    medicamentoId = medicamento.id,
+                    horario = horarioConfirmacao,
+                    data = dataConfirmacao,
+                    foiTomado = true,
+                    sincronizado = true
+                )
+            )
+            Log.d(
+                TAG_ROOM,
+                "Confirmacao local inserida como sincronizada: id=$confirmacaoId, " +
+                    "medicamentoId=${medicamento.id}, data=$dataConfirmacao, horario=$horarioConfirmacao"
+            )
+        }
     }
 
     private fun encontrarHorarioMaisProximo(horarios: List<String>): String {
         val horaAtual = LocalTime.now()
-        val horariosOrdenados = horarios.sortedBy { LocalTime.parse(it) }
+        val horariosOrdenados = horarios
+            .mapNotNull { horario -> runCatching { LocalTime.parse(horario.take(5)) }.getOrNull() }
+            .sorted()
 
-        return horariosOrdenados.lastOrNull { horario ->
-            val horarioDose = LocalTime.parse(horario)
-            !horarioDose.isAfter(horaAtual)
-        } ?: throw DoseForaDoHorarioException()
+        return horariosOrdenados
+            .lastOrNull { horarioDose -> !horarioDose.isAfter(horaAtual) }
+            ?.format(DateTimeFormatter.ofPattern("HH:mm"))
+            ?: throw DoseForaDoHorarioException()
     }
 
-    private fun normalizarDosagem(dosagem: String): String {
-        return dosagem.replace(" ", "").lowercase()
+    private fun validarDoseSelecionada(data: String?, horario: String) {
+        val dataDose = data
+            ?.takeIf { it.isNotBlank() }
+            ?.let { LocalDate.parse(it) }
+            ?: LocalDate.now()
+        val horarioDose = LocalTime.parse(horario.take(5))
+        val dataHoraDose = LocalDateTime.of(dataDose, horarioDose)
+
+        if (dataHoraDose.isAfter(LocalDateTime.now())) {
+            throw DoseForaDoHorarioException()
+        }
     }
 
-    private fun normalizarString(texto: String): String {
-        return texto.trim()
-            .replace(Regex("[^a-zA-Z0-9]"), "")
+    private fun similaridadeTexto(valorSalvo: String, valorCapturado: String): Double {
+        val salvoNormalizado = normalizarTextoMedicamento(valorSalvo)
+        val capturadoNormalizado = normalizarTextoMedicamento(valorCapturado)
+
+        if (salvoNormalizado.isBlank() || capturadoNormalizado.isBlank()) return 0.0
+        if (salvoNormalizado == capturadoNormalizado) return 1.0
+        if (salvoNormalizado.contains(capturadoNormalizado) || capturadoNormalizado.contains(salvoNormalizado)) {
+            return 0.92
+        }
+
+        val distancia = levenshteinDistance(salvoNormalizado, capturadoNormalizado)
+        val maiorTamanho = maxOf(salvoNormalizado.length, capturadoNormalizado.length).coerceAtLeast(1)
+        return 1.0 - (distancia.toDouble() / maiorTamanho.toDouble())
+    }
+
+    private fun normalizarTextoMedicamento(texto: String): String {
+        val semAcento = Normalizer.normalize(texto, Normalizer.Form.NFD)
+            .replace(Regex("\\p{Mn}+"), "")
+
+        return semAcento
             .lowercase()
+            .replace("0", "o")
+            .replace("1", "i")
+            .replace("5", "s")
+            .replace(Regex("[^a-z0-9 ]"), " ")
+            .split(Regex("\\s+"))
+            .filter { token -> token.isNotBlank() && token !in STOP_WORDS_MEDICAMENTO }
+            .joinToString(" ")
+            .trim()
+    }
+
+    private fun levenshteinDistance(a: String, b: String): Int {
+        if (a == b) return 0
+        if (a.isEmpty()) return b.length
+        if (b.isEmpty()) return a.length
+
+        val previous = IntArray(b.length + 1) { it }
+        val current = IntArray(b.length + 1)
+
+        for (i in 1..a.length) {
+            current[0] = i
+            for (j in 1..b.length) {
+                val cost = if (a[i - 1] == b[j - 1]) 0 else 1
+                current[j] = minOf(
+                    current[j - 1] + 1,
+                    previous[j] + 1,
+                    previous[j - 1] + cost
+                )
+            }
+            for (j in previous.indices) {
+                previous[j] = current[j]
+            }
+        }
+
+        return previous[b.length]
     }
 
     private fun criarParteDados(request: ConfirmacaoRequestDto): RequestBody {
@@ -236,5 +375,29 @@ class MedicamentoRepository @Inject constructor(
         return runCatching {
             context.contentResolver.openInputStream(this)?.use { true } ?: false
         }.getOrDefault(false) || path?.let { File(it).exists() } == true
+    }
+
+    private data class MedicamentoMatch(
+        val medicamento: MedicamentoDomain,
+        val score: Double
+    )
+
+    private companion object {
+        const val TAG_CONFIRMACAO = "Confirmacao"
+        const val TAG_ROOM = "Room"
+        const val MATCH_THRESHOLD = 0.78
+        val STOP_WORDS_MEDICAMENTO = setOf(
+            "medicamento",
+            "generico",
+            "genérico",
+            "comprimido",
+            "capsula",
+            "capsulas",
+            "solucao",
+            "oral",
+            "uso",
+            "adulto",
+            "pediatrico"
+        )
     }
 }

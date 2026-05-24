@@ -33,6 +33,7 @@ class MedicamentoViewModel @Inject constructor(
     fun confirmarMedicamento(
         medicamentoCapturado: MedicamentoCapturadoDomain,
         comprovanteImagemUri: Uri?,
+        selectedDose: SelectedDose?,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
@@ -40,7 +41,13 @@ class MedicamentoViewModel @Inject constructor(
             _uiState.value = MedicamentoUIState.Loading
 
             try {
-                medicamentoRepository.confirmarMedicamento(medicamentoCapturado, comprovanteImagemUri)
+                medicamentoRepository.confirmarMedicamento(
+                    medicamentoCapturado = medicamentoCapturado,
+                    comprovanteImagemUri = comprovanteImagemUri,
+                    medicamentoSelecionadoId = selectedDose?.medicamentoId,
+                    dataSelecionada = selectedDose?.data,
+                    horarioSelecionado = selectedDose?.horario
+                )
                 _uiState.value = MedicamentoUIState.Success("Medicamento confirmado!")
                 onSuccess()
             } catch (_: TokenNaoEncontradoException) {

@@ -114,7 +114,10 @@ fun AppNavigation() {
                 data = data,
                 horario = horario,
                 onBackClick = { navController.popBackStack() },
-                onScanClick = { navController.navigate(AppRoutes.CAMERA) }
+                onScanClick = {
+                    cameraViewModel.selecionarDose(medicamentoId, data, horario)
+                    navController.navigate(AppRoutes.CAMERA)
+                }
             )
         }
         composable(AppRoutes.ESQUECI_SENHA) {
