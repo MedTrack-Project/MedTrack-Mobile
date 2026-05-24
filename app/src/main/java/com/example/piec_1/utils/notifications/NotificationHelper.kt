@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -26,7 +25,9 @@ object NotificationHelper {
         medicamentoId: Long,
         nome: String,
         horario: String,
-        imagemUrl: String? = null
+        imagemUrl: String? = null,
+        dataAgendamento: String? = null,
+        notificationId: Int? = null
     ) {
         createNotificationChannel(context)
 
@@ -36,7 +37,7 @@ object NotificationHelper {
             action = Intent.ACTION_VIEW
             data = AppRoutes.doseHorarioDeepLink(
                 medicamentoId = medicamentoId,
-                data = LocalDate.now().toString(),
+                data = dataAgendamento ?: LocalDate.now().toString(),
                 horario = horarioFormatado
             ).toUri()
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -59,7 +60,7 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, "medicamento_channel")
             .setContentTitle("Hora do remedio: $nome")
             .setContentText("Horario: $horarioFormatado")
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.medtrack_white_icon)
             .setLargeIcon(loadMedicationBitmap(context, imagemUrl))
             .setStyle(bigTextStyle)
             .setColorized(true)
@@ -71,25 +72,23 @@ object NotificationHelper {
             .build()
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(medicamentoId.toInt(), notification)
+        notificationManager.notify(notificationId ?: medicamentoId.toInt(), notification)
     }
 
     fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "medicamento_channel",
-                "Lembretes de Medicamentos",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notificacoes para lembrar de tomar medicamentos"
-                enableVibration(true)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-                vibrationPattern = longArrayOf(0, 200, 100, 200)
-            }
-
-            val notificationManager = context.getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+        val channel = NotificationChannel(
+            "medicamento_channel",
+            "Lembretes de Medicamentos",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Notificacoes para lembrar de tomar medicamentos"
+            enableVibration(true)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            vibrationPattern = longArrayOf(0, 200, 100, 200)
         }
+
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+        notificationManager.createNotificationChannel(channel)
     }
 
     fun loadMedicationBitmap(context: Context, imagemUrl: String?): Bitmap {

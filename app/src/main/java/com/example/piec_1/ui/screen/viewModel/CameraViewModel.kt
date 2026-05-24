@@ -15,6 +15,7 @@ import com.example.piec_1.domain.service.CameraService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +26,12 @@ class CameraViewModel @Inject constructor(
 
     private val _medicamento = MutableLiveData<MedicamentoCapturadoDomain?>()
     val medicamento: LiveData<MedicamentoCapturadoDomain?> = _medicamento
+
+    private val _capturedPhotoUri = MutableLiveData<Uri?>()
+    val capturedPhotoUri: LiveData<Uri?> = _capturedPhotoUri
+
+    private val _selectedDose = MutableLiveData<SelectedDose?>()
+    val selectedDose: LiveData<SelectedDose?> = _selectedDose
 
     private val _framePosition = MutableLiveData<Rect?>()
     val framePosition: LiveData<Rect?> get() = _framePosition
@@ -80,6 +87,7 @@ class CameraViewModel @Inject constructor(
     private fun processOnlinePhoto(uri: Uri) {
         viewModelScope.launch {
             try {
+                _capturedPhotoUri.postValue(uri)
                 val file = File(uri.path.orEmpty())
                 val medicamento = scanRepository.scanMedicamento(file)
 
@@ -119,7 +127,21 @@ class CameraViewModel @Inject constructor(
         _medicamento.value = novoMedicamento
     }
 
+    fun selecionarDose(medicamentoId: Long, data: String, horario: String) {
+        _selectedDose.value = SelectedDose(
+            medicamentoId = medicamentoId,
+            data = data,
+            horario = horario.take(5)
+        )
+    }
+
     fun onNavigationToConfirmationHandled() {
         _navigateToConfirmation.value = false
     }
 }
+
+data class SelectedDose(
+    val medicamentoId: Long,
+    val data: String = LocalDate.now().toString(),
+    val horario: String
+)

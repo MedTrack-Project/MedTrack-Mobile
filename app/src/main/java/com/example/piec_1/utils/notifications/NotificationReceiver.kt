@@ -20,6 +20,7 @@ import java.time.LocalDate
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pendingResult = goAsync()
+        val notificationId = intent.getLongExtra("notificationId", -1)
         val medicamentoId = intent.getLongExtra("medicamentoId", -1)
         var nome = intent.getStringExtra("nome")
         val horarioOriginal = intent.getStringExtra("horario")
@@ -61,7 +62,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 )
 
                 val bigTextStyle = NotificationCompat.BigTextStyle()
-                    .bigText("Sao $horario, esta na hora de tomar $nome")
+                    .bigText("São $horario, está na hora de tomar $nome")
                     .setBigContentTitle("Hora do remedio!")
                     .setSummaryText("MedTrack - Lembrete")
 
@@ -81,7 +82,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     .build()
                     .let { notification ->
                         context.getSystemService(NotificationManager::class.java).notify(
-                            medicamentoId.toInt(),
+                            notificationId.takeIf { it > 0 }?.toInt() ?: medicamentoId.toInt(),
                             notification
                         )
                     }

@@ -1,6 +1,5 @@
 package com.example.piec_1.data.remote
 
-import com.example.piec_1.data.remote.dto.ConfirmacaoRequestDto
 import com.example.piec_1.data.remote.dto.ConfirmacaoResponseDto
 import com.example.piec_1.data.remote.dto.LoginRequestDto
 import com.example.piec_1.data.remote.dto.LoginResponseDto
@@ -8,6 +7,7 @@ import com.example.piec_1.data.remote.dto.MedicamentoDto
 import com.example.piec_1.data.remote.dto.ScanResponseDto
 import com.example.piec_1.data.remote.dto.UsuarioDto
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -29,10 +29,12 @@ interface ApiService {
     suspend fun getMedicamentos(@Header("Authorization") token: String)
     : Response<List<MedicamentoDto>>
 
+    @Multipart
     @POST("/api/confirmacao")
     suspend fun confirmarMedicamento(
         @Header("Authorization") token: String,
-        @Body request: ConfirmacaoRequestDto
+        @Part("dados") dados: RequestBody,
+        @Part imagem: MultipartBody.Part? = null
     ): Response<ConfirmacaoResponseDto>
 
     @Multipart

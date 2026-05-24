@@ -48,8 +48,11 @@ fun TelaConfirmacao(
     onRetakePhoto: () -> Unit
 ) {
     val medicamento by cameraViewModel.medicamento.observeAsState()
+    val capturedPhotoUri by cameraViewModel.capturedPhotoUri.observeAsState()
+    val selectedDose by cameraViewModel.selectedDose.observeAsState()
     var showEditDialog by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val medicamentoEditavel = remember(medicamento) {
         mutableStateOf(medicamento ?: medicamentoDesconhecido)
     }
@@ -87,15 +90,18 @@ fun TelaConfirmacao(
                     Button(
                         onClick = {
                             loading = true
+                            errorMessage = null
                             medicamentoViewModel.confirmarMedicamento(
                                 medicamentoCapturado = medicamento!!,
+                                comprovanteImagemUri = capturedPhotoUri,
+                                selectedDose = selectedDose,
                                 onSuccess = {
                                     loading = false
                                     onConfirmSuccess()
                                 },
                                 onError = { error ->
                                     loading = false
-                                    println("Erro ao confirmar: $error")
+                                    errorMessage = error
                                 }
                             )
                         },
@@ -113,6 +119,15 @@ fun TelaConfirmacao(
                         }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                errorMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
                 }
 
                 OutlinedButton(

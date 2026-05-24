@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,7 +86,7 @@ fun MedicamentoImage(
             }
             else -> {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_pill),
+                    imageVector = Icons.Default.Image,
                     contentDescription = "Medicamento sem imagem",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(72.dp)

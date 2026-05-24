@@ -11,8 +11,6 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-private const val CONFIRMATION_TOLERANCE_MINUTES = 30L
-
 fun organizeMedicationsByDay(
     medicamentos: List<MedicamentoDomain>,
     currentDate: LocalDate,
@@ -130,12 +128,9 @@ fun resolveDoseStatus(
     }
 
     val scheduledAt = date.atTime(horario)
-    val toleranceEndsAt = scheduledAt.plusMinutes(CONFIRMATION_TOLERANCE_MINUTES)
-
     return when {
         now.isBefore(scheduledAt) -> DoseStatus.FUTURE
-        !now.isAfter(toleranceEndsAt) && now.isAfter(scheduledAt) -> DoseStatus.LATE
         now.isEqual(scheduledAt) -> DoseStatus.AVAILABLE
-        else -> DoseStatus.EXPIRED
+        else -> DoseStatus.LATE
     }
 }
