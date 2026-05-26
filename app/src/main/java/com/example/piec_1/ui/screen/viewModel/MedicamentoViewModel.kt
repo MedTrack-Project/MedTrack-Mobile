@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.piec_1.data.repository.MedicamentoRepository
+import com.example.piec_1.data.repository.MedicamentoRepositoryContract
 import com.example.piec_1.domain.model.MedicamentoCapturadoDomain
 import com.example.piec_1.utils.exceptions.ConfirmacaoExistenteException
 import com.example.piec_1.utils.exceptions.DoseForaDoHorarioException
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MedicamentoViewModel @Inject constructor(
-    private val medicamentoRepository: MedicamentoRepository
+    private val medicamentoRepository: MedicamentoRepositoryContract
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData<MedicamentoUIState>(MedicamentoUIState.Idle)

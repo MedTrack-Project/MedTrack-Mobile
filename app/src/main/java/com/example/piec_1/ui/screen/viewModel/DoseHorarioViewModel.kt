@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.piec_1.data.repository.MedicamentoRepository
+import com.example.piec_1.data.repository.MedicamentoRepositoryContract
 import com.example.piec_1.domain.model.DoseStatus
 import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.usecase.resolveDoseStatus
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DoseHorarioViewModel @Inject constructor(
-    private val medicamentoRepository: MedicamentoRepository
+    private val medicamentoRepository: MedicamentoRepositoryContract
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData<DoseHorarioUiState>(DoseHorarioUiState.Loading)

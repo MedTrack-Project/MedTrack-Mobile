@@ -44,13 +44,13 @@ class MedicamentoRepository @Inject constructor(
     database: AppDatabase,
     private val authRepository: AuthRepository,
     private val notificationScheduler: NotificationScheduler
-) {
+) : MedicamentoRepositoryContract {
     private val usuarioDao = database.usuarioDao()
     private val medicamentoV2Dao = database.medicamentoV2Dao()
     private val confirmacaoDao = database.confirmacaoDao()
     private val gson = Gson()
 
-    suspend fun sincronizarDadosDoUsuario(token: String): LoginData = withContext(Dispatchers.IO) {
+    override suspend fun sincronizarDadosDoUsuario(token: String): LoginData = withContext(Dispatchers.IO) {
         val authHeader = "Bearer $token"
         val usuario = buscarUsuario(authHeader)
         val medicamentos = buscarMedicamentos(authHeader)
@@ -66,11 +66,11 @@ class MedicamentoRepository @Inject constructor(
         )
     }
 
-    suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? = withContext(Dispatchers.IO) {
+    override suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? = withContext(Dispatchers.IO) {
         medicamentoV2Dao.getById(medicamentoId)?.toDomain()
     }
 
-    suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = withContext(Dispatchers.IO) {
+    override suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = withContext(Dispatchers.IO) {
         confirmacaoDao.getAll()
             .filter { it.sincronizado }
             .map { confirmacao ->
@@ -82,12 +82,12 @@ class MedicamentoRepository @Inject constructor(
             }.toSet()
     }
 
-    suspend fun confirmarMedicamento(
+    override suspend fun confirmarMedicamento(
         medicamentoCapturado: MedicamentoCapturadoDomain,
         comprovanteImagemUri: Uri?,
-        medicamentoSelecionadoId: Long? = null,
-        dataSelecionada: String? = null,
-        horarioSelecionado: String? = null
+        medicamentoSelecionadoId: Long?,
+        dataSelecionada: String?,
+        horarioSelecionado: String?
     ) = withContext(Dispatchers.IO) {
         val token = authRepository.getToken() ?: throw TokenNaoEncontradoException()
         val medicamentoCorrespondente = medicamentoSelecionadoId
