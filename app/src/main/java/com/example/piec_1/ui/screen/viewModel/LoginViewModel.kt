@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.piec_1.data.repository.AuthRepository
 import com.example.piec_1.data.repository.LoginException
-import com.example.piec_1.data.repository.MedicamentoRepository
+import com.example.piec_1.data.repository.MedicamentoRepositoryContract
 import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.model.Usuario
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val medicamentoRepository: MedicamentoRepository
+    private val medicamentoRepository: MedicamentoRepositoryContract
 ) : ViewModel() {
 
     private val _loginResponse = MutableLiveData<String>()

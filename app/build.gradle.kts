@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kover)
 }
 
 val localProperties = Properties().apply {
@@ -72,6 +73,69 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*.BuildConfig",
+                    "*.R",
+                    "*.R$*",
+                    "*.Manifest*",
+                    "*.*GeneratedInjector*",
+                    "_com_example_piec_1_*",
+                    "hilt_aggregated_deps.*",
+                    "hilt_aggregated_deps/*",
+                    "dagger.hilt.internal.aggregatedroot.codegen.*",
+                    "dagger/hilt/internal/aggregatedroot/codegen/*",
+                    "dagger.hilt.internal.processedrootsentinel.codegen.*",
+                    "dagger/hilt/internal/processedrootsentinel/codegen/*",
+                    "com.example.piec_1.MainActivity",
+                    "com.example.piec_1.MainActivityKt*",
+                    "com.example.piec_1.MedTrackApp",
+                    "com.example.piec_1.di.*",
+                    "com.example.piec_1.data.local.AppDatabase*",
+                    "com.example.piec_1.data.local.Migrations*",
+                    "com.example.piec_1.data.local.daos.*",
+                    "com.example.piec_1.data.local.entity.*",
+                    "com.example.piec_1.data.remote.ApiService*",
+                    "com.example.piec_1.data.remote.dto.*",
+                    "com.example.piec_1.data.repository.AuthRepository*",
+                    "com.example.piec_1.data.repository.LoginData*",
+                    "com.example.piec_1.data.repository.LoginException*",
+                    "com.example.piec_1.data.repository.MedicamentoRepository*",
+                    "com.example.piec_1.data.repository.ScanRepository*",
+                    "com.example.piec_1.data.session.*",
+                    "com.example.piec_1.domain.service.*",
+                    "com.example.piec_1.ui.components.*",
+                    "com.example.piec_1.ui.navigation.*",
+                    "com.example.piec_1.ui.screen.Tela*",
+                    "com.example.piec_1.ui.screen.viewModel.CameraViewModel*",
+                    "com.example.piec_1.ui.screen.viewModel.LoginViewModel*",
+                    "com.example.piec_1.ui.theme.*",
+                    "com.example.piec_1.utils.MultipartImageUtils*",
+                    "com.example.piec_1.utils.connection.*",
+                    "com.example.piec_1.utils.exceptions.*",
+                    "com.example.piec_1.utils.notifications.*",
+                    "*.*_Factory",
+                    "*.*_MembersInjector",
+                    "*.Hilt_*",
+                    "*.*Hilt*",
+                    "*.*Dagger*",
+                    "*.*Module",
+                    "*.*ComposableSingletons*",
+                    "**/*Activity*",
+                    "**/*Fragment*",
+                    "**/hilt_aggregated_deps/**",
+                    "**/dagger/hilt/internal/**",
+                    "hilt_aggregated_deps/**",
+                    "dagger/hilt/internal/**"
+                )
+            }
+        }
+    }
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -111,6 +175,8 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.androidx.arch.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
