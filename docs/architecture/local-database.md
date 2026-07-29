@@ -5,7 +5,7 @@ O banco local usa Room e fica centralizado em `AppDatabase`.
 ## Configuracao
 
 - Nome do banco: `app_database_db`
-- Versao atual: `8`
+- Versao atual: `9`
 - Schema exportado em `app/schemas`
 - Migrations em `data/local/Migrations.kt`
 
@@ -38,8 +38,9 @@ O banco usa migrations explicitas:
 - `MIGRATION_3_4`
 - `MIGRATION_6_7`
 - `MIGRATION_7_8`
+- `MIGRATION_8_9`
 
-`fallbackToDestructiveMigration(false)` indica que o app nao deve destruir dados automaticamente 
+`fallbackToDestructiveMigration(false)` indica que o app nao deve destruir dados automaticamente
 quando faltar migration.
 
 ## Regras
