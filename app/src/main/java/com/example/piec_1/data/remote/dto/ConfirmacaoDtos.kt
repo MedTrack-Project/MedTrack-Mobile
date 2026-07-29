@@ -6,7 +6,7 @@ data class ConfirmacaoRequestDto(
     val horario: String,
     val data: String,
     val foiTomado: Boolean,
-    val observacao: String?
+    val observacao: String?,
 )
 
 data class ConfirmacaoResponseDto(
@@ -18,5 +18,5 @@ data class ConfirmacaoResponseDto(
     val foiTomado: Boolean,
     val observacao: String?,
     val comprovanteImagemUrl: String? = null,
-    val mensagem: String? = null
+    val mensagem: String? = null,
 )

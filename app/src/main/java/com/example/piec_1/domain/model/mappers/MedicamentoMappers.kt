@@ -19,7 +19,7 @@ fun FrequenciaUsoEntity.toDomain() = FrequenciaUsoDomain(
     intervaloHoras = intervaloHoras,
     primeiroHorario = primeiroHorario?.let { LocalTime.parse(it) },
     dataInicio = dataInicio?.let { LocalDate.parse(it) },
-    dataTermino = dataTermino?.let { LocalDate.parse(it) }
+    dataTermino = dataTermino?.let { LocalDate.parse(it) },
 )
 
 fun FrequenciaUsoDomain.toEntity() = FrequenciaUsoEntity(
@@ -29,7 +29,7 @@ fun FrequenciaUsoDomain.toEntity() = FrequenciaUsoEntity(
     intervaloHoras = intervaloHoras,
     primeiroHorario = primeiroHorario?.toString(),
     dataInicio = dataInicio?.toString(),
-    dataTermino = dataTermino?.toString()
+    dataTermino = dataTermino?.toString(),
 )
 
 fun MedicamentoEntity.toDomain() = MedicamentoDomain(
@@ -38,7 +38,7 @@ fun MedicamentoEntity.toDomain() = MedicamentoDomain(
     compostoAtivo = compostoAtivo,
     dosagem = dosagem,
     imagemUrl = imagemUrl,
-    frequenciaUso = frequenciaUso.toDomain()
+    frequenciaUso = frequenciaUso.toDomain(),
 )
 
 fun MedicamentoDomain.toEntity() = MedicamentoEntity(
@@ -47,5 +47,5 @@ fun MedicamentoDomain.toEntity() = MedicamentoEntity(
     compostoAtivo = compostoAtivo,
     dosagem = dosagem,
     imagemUrl = imagemUrl,
-    frequenciaUso = frequenciaUso.toEntity()
+    frequenciaUso = frequenciaUso.toEntity(),
 )

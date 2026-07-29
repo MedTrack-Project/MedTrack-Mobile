@@ -19,11 +19,11 @@ fun TelaInicial(onStartClick: () -> Unit) {
                 Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary
-                    )
-                )
+                        MaterialTheme.colorScheme.secondary,
+                    ),
+                ),
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         ContentCard(onStartClick = onStartClick)
     }

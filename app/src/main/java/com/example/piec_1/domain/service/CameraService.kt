@@ -30,14 +30,14 @@ import javax.inject.Inject
 
 class CameraService @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val detectionService: DetectionService
+    private val detectionService: DetectionService,
 ) {
     private var imageCapture: ImageCapture? = null
 
     fun startCamera(
         previewView: PreviewView,
         lifecycleOwner: LifecycleOwner,
-        onObjectDetected: (Boolean, Rect?) -> Unit
+        onObjectDetected: (Boolean, Rect?) -> Unit,
     ) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
@@ -68,7 +68,7 @@ class CameraService @Inject constructor(
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     imageAnalysis,
-                    imageCapture
+                    imageCapture,
                 )
             } catch (e: Exception) {
                 Log.e("CameraX", "Erro ao iniciar camera", e)
@@ -79,7 +79,7 @@ class CameraService @Inject constructor(
     fun capturePhotoOnly(onImageCaptured: (Uri?) -> Unit) {
         val photoFile = File(
             context.filesDir,
-            "scan_${System.currentTimeMillis()}.jpg"
+            "scan_${System.currentTimeMillis()}.jpg",
         )
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
@@ -97,7 +97,7 @@ class CameraService @Inject constructor(
                     Log.e("CameraService", "Erro ao salvar foto: ${exception.message}")
                     onImageCaptured(null)
                 }
-            }
+            },
         )
     }
 
@@ -106,14 +106,17 @@ class CameraService @Inject constructor(
         imageProxy: ImageProxy,
         previewWidth: Int,
         previewHeight: Int,
-        onObjectDetected: (Boolean, Rect?) -> Unit
+        onObjectDetected: (Boolean, Rect?) -> Unit,
     ) {
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
             val rotationDegrees = imageProxy.imageInfo.rotationDegrees
             val bitmap = mediaImage.toBitmap(rotationDegrees)
 
-            detectionService.detectObjects(bitmap, previewWidth, previewHeight) { detected, objectBounds ->
+            detectionService.detectObjects(bitmap, previewWidth, previewHeight) {
+                    detected,
+                    objectBounds,
+                ->
                 onObjectDetected(detected, objectBounds)
             }
         }

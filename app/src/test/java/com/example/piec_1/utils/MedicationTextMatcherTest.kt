@@ -13,7 +13,7 @@ class MedicationTextMatcherTest {
             savedName = "Losartana Potassica",
             capturedName = "LOSARTANA potassica comprimido",
             savedActiveIngredient = "Losartana Potassica",
-            capturedActiveIngredient = "losartana potassica"
+            capturedActiveIngredient = "losartana potassica",
         )
 
         assertTrue(result)
@@ -25,7 +25,7 @@ class MedicationTextMatcherTest {
             savedName = "Sinvastatina",
             capturedName = "5invastatina",
             savedActiveIngredient = "Sinvastatina",
-            capturedActiveIngredient = "sinvastatina"
+            capturedActiveIngredient = "sinvastatina",
         )
 
         assertTrue(result)
@@ -37,7 +37,7 @@ class MedicationTextMatcherTest {
             savedName = "Losartana",
             capturedName = "Metformina",
             savedActiveIngredient = "Losartana Potassica",
-            capturedActiveIngredient = "Cloridrato de Metformina"
+            capturedActiveIngredient = "Cloridrato de Metformina",
         )
 
         assertFalse(result)
@@ -49,7 +49,7 @@ class MedicationTextMatcherTest {
             savedName = "Dipirona Sodica",
             capturedName = "dipirona sodica",
             savedActiveIngredient = "Dipirona",
-            capturedActiveIngredient = "dipirona"
+            capturedActiveIngredient = "dipirona",
         )
 
         assertEquals(1.0, score, 0.0)
@@ -61,7 +61,7 @@ class MedicationTextMatcherTest {
             savedName = "Atenolol",
             capturedName = "",
             savedActiveIngredient = "Atenolol",
-            capturedActiveIngredient = "   "
+            capturedActiveIngredient = "   ",
         )
 
         assertEquals(0.0, score, 0.0)

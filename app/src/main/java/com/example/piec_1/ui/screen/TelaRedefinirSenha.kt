@@ -53,36 +53,36 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
                 Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary
-                    )
-                )
+                        MaterialTheme.colorScheme.secondary,
+                    ),
+                ),
             ),
-        contentAlignment = Alignment.BottomCenter
+        contentAlignment = Alignment.BottomCenter,
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f),
             color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(24.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(rememberScrollState()),
             ) {
                 Box(
                     modifier = Modifier
                         .size(60.dp)
                         .background(MaterialTheme.colorScheme.primary, CircleShape)
                         .padding(12.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.medtrack_white_icon),
                         contentDescription = null,
-                        tint = Color.White
+                        tint = Color.White,
                     )
                 }
 
@@ -90,7 +90,7 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
 
                 Text(
                     text = "Nova Senha",
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 28.sp)
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 28.sp),
                 )
 
                 Surface(
@@ -98,23 +98,23 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp)
+                        .padding(vertical = 16.dp),
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
                             tint = Color(0xFF2E7D32),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Código enviado para o seu e-mail.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF2E7D32)
+                            color = Color(0xFF2E7D32),
                         )
                     }
                 }
@@ -124,21 +124,21 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
                         label = "Código de 6 dígitos",
                         text = codigo.value,
                         onTextChange = { codigo.value = it },
-                        isError = errorMessage.value != null
+                        isError = errorMessage.value != null,
                     )
                     EntradaDeTexto(
                         label = "Nova senha",
                         text = novaSenha.value,
                         onTextChange = { novaSenha.value = it },
                         isPassword = true,
-                        isError = errorMessage.value != null
+                        isError = errorMessage.value != null,
                     )
                     EntradaDeTexto(
                         label = "Repita a nova senha",
                         text = repetirNovaSenha.value,
                         onTextChange = { repetirNovaSenha.value = it },
                         isPassword = true,
-                        isError = errorMessage.value != null
+                        isError = errorMessage.value != null,
                     )
                 }
 
@@ -147,7 +147,7 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
                         text = errorMessage.value!!,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(top = 8.dp).align(Alignment.Start)
+                        modifier = Modifier.padding(top = 8.dp).align(Alignment.Start),
                     )
                 }
 
@@ -155,8 +155,10 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if (codigo.value.isBlank() || novaSenha.value.isBlank() ||
-                            repetirNovaSenha.value.isBlank()) {
+                        if (codigo.value.isBlank() ||
+                            novaSenha.value.isBlank() ||
+                            repetirNovaSenha.value.isBlank()
+                        ) {
                             errorMessage.value = "Preencha todos os campos."
                         } else if (novaSenha.value != repetirNovaSenha.value) {
                             errorMessage.value = "As senhas não coincidem."
@@ -167,11 +169,11 @@ fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
                     },
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.primary,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(56.dp),
                 ) {
                     Text("Salvar Nova Senha", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }

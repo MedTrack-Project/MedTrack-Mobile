@@ -38,14 +38,14 @@ class MedicamentoViewModelTest {
             comprovanteImagemUri = null,
             selectedDose = SelectedDose(medicamentoId = 1, data = "2026-05-25", horario = "08:00"),
             onSuccess = { successCalled = true },
-            onError = { errorMessage = it }
+            onError = { errorMessage = it },
         )
 
         assertTrue(successCalled)
         assertEquals(null, errorMessage)
         assertEquals(
             MedicamentoViewModel.MedicamentoUIState.Success("Medicamento confirmado!"),
-            viewModel.uiState.value
+            viewModel.uiState.value,
         )
     }
 
@@ -54,7 +54,7 @@ class MedicamentoViewModelTest {
         var successCalled = false
         var errorMessage: String? = null
         val viewModel = MedicamentoViewModel(
-            ConfirmacaoFakeDataSource(error = RuntimeException("falha controlada"))
+            ConfirmacaoFakeDataSource(error = RuntimeException("falha controlada")),
         )
 
         viewModel.confirmarMedicamento(
@@ -62,7 +62,7 @@ class MedicamentoViewModelTest {
             comprovanteImagemUri = null,
             selectedDose = SelectedDose(medicamentoId = 1, data = "2026-05-25", horario = "08:00"),
             onSuccess = { successCalled = true },
-            onError = { errorMessage = it }
+            onError = { errorMessage = it },
         )
 
         val expectedMessage = "Erro ao confirmar: falha controlada"
@@ -70,7 +70,7 @@ class MedicamentoViewModelTest {
         assertEquals(expectedMessage, errorMessage)
         assertEquals(
             MedicamentoViewModel.MedicamentoUIState.Error(expectedMessage),
-            viewModel.uiState.value
+            viewModel.uiState.value,
         )
     }
 
@@ -78,9 +78,10 @@ class MedicamentoViewModelTest {
     fun `confirmarMedicamento translates domain exceptions to user messages`() = runTest {
         val cases = listOf(
             TokenNaoEncontradoException() to "Sessao expirada. Faca login novamente.",
-            MedicamentoNaoEncontradoException() to "Medicamento nao cadastrado. Cadastre-o primeiro.",
+            MedicamentoNaoEncontradoException() to
+                "Medicamento nao cadastrado. Cadastre-o primeiro.",
             ConfirmacaoExistenteException() to "Ja existe uma confirmacao para este horario.",
-            DoseForaDoHorarioException() to "Esta dose so pode ser confirmada no horario correto."
+            DoseForaDoHorarioException() to "Esta dose so pode ser confirmada no horario correto.",
         )
 
         cases.forEach { (exception, expectedMessage) ->
@@ -91,16 +92,20 @@ class MedicamentoViewModelTest {
             viewModel.confirmarMedicamento(
                 medicamentoCapturado = medicamentoCapturado(),
                 comprovanteImagemUri = null,
-                selectedDose = SelectedDose(medicamentoId = 1, data = "2026-05-25", horario = "08:00"),
+                selectedDose = SelectedDose(
+                    medicamentoId = 1,
+                    data = "2026-05-25",
+                    horario = "08:00",
+                ),
                 onSuccess = { successCalled = true },
-                onError = { errorMessage = it }
+                onError = { errorMessage = it },
             )
 
             assertEquals(false, successCalled)
             assertEquals(expectedMessage, errorMessage)
             assertEquals(
                 MedicamentoViewModel.MedicamentoUIState.Error(expectedMessage),
-                viewModel.uiState.value
+                viewModel.uiState.value,
             )
         }
     }
@@ -110,32 +115,26 @@ class MedicamentoViewModelTest {
         compostoAtivo = "Losartana Potassica",
         dosagem = "50mg",
         quantidade = "30 comprimidos",
-        validade = "2027-01"
+        validade = "2027-01",
     )
 }
 
-private class ConfirmacaoFakeDataSource(
-    private val error: Exception? = null
-) : MedicamentoRepositoryContract {
+private class ConfirmacaoFakeDataSource(private val error: Exception? = null) : MedicamentoRepositoryContract {
 
-    override suspend fun sincronizarDadosDoUsuario(token: String): LoginData {
+    override suspend fun sincronizarDadosDoUsuario(token: String): LoginData =
         throw AssertionError("Nao usado neste teste")
-    }
 
-    override suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? {
+    override suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? =
         throw AssertionError("Nao usado neste teste")
-    }
 
-    override suspend fun buscarChavesDeDosesConfirmadas(): Set<String> {
-        throw AssertionError("Nao usado neste teste")
-    }
+    override suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = throw AssertionError("Nao usado neste teste")
 
     override suspend fun confirmarMedicamento(
         medicamentoCapturado: MedicamentoCapturadoDomain,
         comprovanteImagemUri: Uri?,
         medicamentoSelecionadoId: Long?,
         dataSelecionada: String?,
-        horarioSelecionado: String?
+        horarioSelecionado: String?,
     ) {
         error?.let { throw it }
     }

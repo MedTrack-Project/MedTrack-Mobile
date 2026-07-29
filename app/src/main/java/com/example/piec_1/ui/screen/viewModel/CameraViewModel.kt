@@ -13,15 +13,15 @@ import com.example.piec_1.data.repository.ScanRepository
 import com.example.piec_1.domain.model.MedicamentoCapturadoDomain
 import com.example.piec_1.domain.service.CameraService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import java.io.File
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
     private val scanRepository: ScanRepository,
-    private val cameraService: CameraService
+    private val cameraService: CameraService,
 ) : ViewModel() {
 
     private val _medicamento = MutableLiveData<MedicamentoCapturadoDomain?>()
@@ -131,7 +131,7 @@ class CameraViewModel @Inject constructor(
         _selectedDose.value = SelectedDose(
             medicamentoId = medicamentoId,
             data = data,
-            horario = horario.take(5)
+            horario = horario.take(5),
         )
     }
 
@@ -140,8 +140,4 @@ class CameraViewModel @Inject constructor(
     }
 }
 
-data class SelectedDose(
-    val medicamentoId: Long,
-    val data: String = LocalDate.now().toString(),
-    val horario: String
-)
+data class SelectedDose(val medicamentoId: Long, val data: String = LocalDate.now().toString(), val horario: String)

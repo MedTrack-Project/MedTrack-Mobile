@@ -2,21 +2,16 @@ package com.example.piec_1.utils
 
 import android.content.Context
 import android.net.Uri
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okio.BufferedSink
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
 
 object MultipartImageUtils {
-    fun createJpegPart(
-        context: Context,
-        uri: Uri?,
-        partName: String,
-        filename: String
-    ): MultipartBody.Part? {
+    fun createJpegPart(context: Context, uri: Uri?, partName: String, filename: String): MultipartBody.Part? {
         if (uri == null || !canOpen(context, uri)) return null
 
         val requestBody = runCatching {
@@ -26,15 +21,14 @@ object MultipartImageUtils {
         return MultipartBody.Part.createFormData(
             name = partName,
             filename = filename,
-            body = requestBody
+            body = requestBody,
         )
     }
 
-    fun canOpen(context: Context, uri: Uri): Boolean {
-        return runCatching {
-            context.contentResolver.openInputStream(uri)?.use { true } ?: false
-        }.getOrDefault(false) || uri.path?.let { File(it).exists() } == true
-    }
+    fun canOpen(context: Context, uri: Uri): Boolean = runCatching {
+        context.contentResolver.openInputStream(uri)?.use { true } ?: false
+    }.getOrDefault(false) ||
+        uri.path?.let { File(it).exists() } == true
 
     private fun Uri.asJpegRequestBody(context: Context): RequestBody {
         val imageMediaType = "image/jpeg".toMediaType()

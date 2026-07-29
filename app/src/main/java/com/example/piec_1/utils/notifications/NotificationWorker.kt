@@ -4,10 +4,7 @@ import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
-class NotificationWorker(
-    context: Context,
-    workerParams: WorkerParameters
-) : Worker(context, workerParams) {
+class NotificationWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     override fun doWork(): Result {
         val notificationId = inputData.getLong("notificationId", -1)
@@ -31,7 +28,7 @@ class NotificationWorker(
             horario = horario,
             imagemUrl = imagemUrl,
             dataAgendamento = dataAgendamento,
-            notificationId = notificationId.takeIf { it > 0 }?.toInt()
+            notificationId = notificationId.takeIf { it > 0 }?.toInt(),
         )
 
         return Result.success()

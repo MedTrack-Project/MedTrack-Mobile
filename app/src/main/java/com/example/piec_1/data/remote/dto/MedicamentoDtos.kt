@@ -6,7 +6,7 @@ data class MedicamentoDto(
     val compostoAtivo: String,
     val dosagem: String,
     val imagemUrl: String? = null,
-    val frequenciaUso: FrequenciaUsoDto
+    val frequenciaUso: FrequenciaUsoDto,
 )
 
 data class FrequenciaUsoDto(
@@ -16,5 +16,5 @@ data class FrequenciaUsoDto(
     val intervaloHoras: Int? = null,
     val primeiroHorario: String? = null,
     val dataInicio: String? = null,
-    val dataTermino: String? = null
+    val dataTermino: String? = null,
 )

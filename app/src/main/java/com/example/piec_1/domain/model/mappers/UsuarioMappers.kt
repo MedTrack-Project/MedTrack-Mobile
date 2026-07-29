@@ -7,12 +7,12 @@ fun Usuario.toEntity() = UsuarioEntity(
     id = id,
     nome = nome,
     email = email,
-    nomeUsuario = nomeUsuario
+    nomeUsuario = nomeUsuario,
 )
 
 fun UsuarioEntity.toDomain() = Usuario(
     id = id,
     nome = nome,
     email = email,
-    nomeUsuario = nomeUsuario
+    nomeUsuario = nomeUsuario,
 )

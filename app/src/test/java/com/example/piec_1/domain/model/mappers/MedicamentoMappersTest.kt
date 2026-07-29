@@ -8,11 +8,11 @@ import com.example.piec_1.data.remote.mapper.toDomain
 import com.example.piec_1.domain.model.FrequenciaUsoDomain
 import com.example.piec_1.domain.model.FrequenciaUsoTipo
 import com.example.piec_1.domain.model.MedicamentoDomain
+import java.time.LocalDate
+import java.time.LocalTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalTime
 
 class MedicamentoMappersTest {
 
@@ -31,8 +31,8 @@ class MedicamentoMappersTest {
                 intervaloHoras = null,
                 primeiroHorario = "08:00",
                 dataInicio = "2026-05-20",
-                dataTermino = null
-            )
+                dataTermino = null,
+            ),
         )
 
         val domain = dto.toDomain()
@@ -43,7 +43,10 @@ class MedicamentoMappersTest {
         assertEquals("50mg", domain.dosagem)
         assertEquals("https://example.com/losartana.png", domain.imagemUrl)
         assertEquals(FrequenciaUsoTipo.HORARIOS_ESPECIFICOS, domain.frequenciaUso.frequenciaUsoTipo)
-        assertEquals(listOf(LocalTime.of(8, 0), LocalTime.of(20, 0)), domain.frequenciaUso.horariosEspecificos)
+        assertEquals(
+            listOf(LocalTime.of(8, 0), LocalTime.of(20, 0)),
+            domain.frequenciaUso.horariosEspecificos,
+        )
         assertEquals(LocalDate.of(2026, 5, 20), domain.frequenciaUso.dataInicio)
         assertNull(domain.frequenciaUso.dataTermino)
     }
@@ -63,8 +66,8 @@ class MedicamentoMappersTest {
                 intervaloHoras = 12,
                 primeiroHorario = "06:30",
                 dataInicio = "2026-05-21",
-                dataTermino = "2026-05-30"
-            )
+                dataTermino = "2026-05-30",
+            ),
         )
 
         val domain = entity.toDomain()
@@ -84,10 +87,10 @@ class MedicamentoMappersTest {
                     intervaloHoras = 12,
                     primeiroHorario = LocalTime.of(6, 30),
                     dataInicio = LocalDate.of(2026, 5, 21),
-                    dataTermino = LocalDate.of(2026, 5, 30)
-                )
+                    dataTermino = LocalDate.of(2026, 5, 30),
+                ),
             ),
-            domain
+            domain,
         )
         assertEquals(entity, mappedBack)
     }
@@ -101,7 +104,7 @@ class MedicamentoMappersTest {
             intervaloHoras = null,
             primeiroHorario = null,
             dataInicio = null,
-            dataTermino = null
+            dataTermino = null,
         )
 
         val domain = entity.toDomain()

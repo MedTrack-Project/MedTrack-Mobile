@@ -16,7 +16,7 @@ class ConfirmacaoMappersTest {
             data = "2026-05-25",
             foiTomado = true,
             observacao = "Dose confirmada pelo app",
-            sincronizado = true
+            sincronizado = true,
         )
 
         val domain = entity.toDomain()
@@ -30,9 +30,9 @@ class ConfirmacaoMappersTest {
                 data = "2026-05-25",
                 foiTomado = true,
                 observacao = "Dose confirmada pelo app",
-                sincronizado = true
+                sincronizado = true,
             ),
-            domain
+            domain,
         )
         assertEquals(entity, mappedBack)
     }

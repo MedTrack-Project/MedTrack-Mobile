@@ -30,7 +30,7 @@ fun ContentCard(onStartClick: () -> Unit) {
         verticalArrangement = Arrangement.SpaceAround,
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(24.dp),
     ) {
         Icon(
             painter = painterResource(id = R.drawable.medtrack_white_icon),
@@ -38,18 +38,18 @@ fun ContentCard(onStartClick: () -> Unit) {
             tint = Color.Unspecified,
             modifier = Modifier
                 .size(420.dp)
-                .weight(1f)
+                .weight(1f),
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(bottom = 48.dp)
+            modifier = Modifier.padding(bottom = 48.dp),
         ) {
             Text(
                 text = "MedTrack",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontSize = 48.sp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                    color = MaterialTheme.colorScheme.onPrimary,
+                ),
             )
 
             Button(
@@ -57,18 +57,18 @@ fun ContentCard(onStartClick: () -> Unit) {
                 shape = RoundedCornerShape(50.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.primary
+                    contentColor = MaterialTheme.colorScheme.primary,
                 ),
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
-                    .height(56.dp)
+                    .height(56.dp),
             ) {
                 Text(
                     text = "Iniciar",
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
+                        fontSize = 20.sp,
+                    ),
                 )
             }
         }

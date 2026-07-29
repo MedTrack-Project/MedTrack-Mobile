@@ -1,12 +1,12 @@
 package com.example.piec_1.domain.usecase
 
+import com.example.piec_1.domain.model.DoseStatus
 import com.example.piec_1.domain.model.FrequenciaUsoDomain
 import com.example.piec_1.domain.model.FrequenciaUsoTipo
-import com.example.piec_1.domain.model.DoseStatus
 import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.model.MedicationItem
-import java.time.LocalDateTime
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -16,13 +16,17 @@ fun organizeMedicationsByDay(
     currentDate: LocalDate,
     maxDaysToShow: Int = 7,
     confirmedDoseKeys: Set<String> = emptySet(),
-    now: LocalDateTime = LocalDateTime.now()
+    now: LocalDateTime = LocalDateTime.now(),
 ): Map<LocalDate, List<MedicationItem>> {
     val datesToShow = getDatesBetween(currentDate, currentDate.plusDays(maxDaysToShow.toLong() - 1))
     val result = mutableMapOf<LocalDate, MutableList<MedicationItem>>()
 
     medicamentos.forEach { medicamento ->
-        medicamento.toScheduledMedicationItems(datesToShow, confirmedDoseKeys, now).forEach { scheduledItem ->
+        medicamento.toScheduledMedicationItems(
+            datesToShow,
+            confirmedDoseKeys,
+            now,
+        ).forEach { scheduledItem ->
             result.getOrPut(scheduledItem.date) { mutableListOf() }.add(scheduledItem.item)
         }
     }
@@ -37,7 +41,7 @@ fun organizeMedicationsByDay(
 fun MedicamentoDomain.toScheduledMedicationItems(
     datesToShow: List<LocalDate>,
     confirmedDoseKeys: Set<String> = emptySet(),
-    now: LocalDateTime = LocalDateTime.now()
+    now: LocalDateTime = LocalDateTime.now(),
 ): List<ScheduledMedicationItem> {
     val ehGenerico = nome.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
         nome.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
@@ -61,18 +65,16 @@ fun MedicamentoDomain.toScheduledMedicationItems(
                     imagemUrl = imagemUrl,
                     isContinuous = frequenciaUso.usoContinuo,
                     isGenerico = ehGenerico,
-                    status = resolveDoseStatus(id, date, horario, confirmedDoseKeys, now)
-                )
+                    status = resolveDoseStatus(id, date, horario, confirmedDoseKeys, now),
+                ),
             )
         }
     }
 }
 
-fun FrequenciaUsoDomain.horariosDoDia(): List<LocalTime> {
-    return when (frequenciaUsoTipo) {
-        FrequenciaUsoTipo.HORARIOS_ESPECIFICOS -> horariosEspecificos.sorted()
-        FrequenciaUsoTipo.INTERVALO_ENTRE_DOSES -> horariosPorIntervalo()
-    }
+fun FrequenciaUsoDomain.horariosDoDia(): List<LocalTime> = when (frequenciaUsoTipo) {
+    FrequenciaUsoTipo.HORARIOS_ESPECIFICOS -> horariosEspecificos.sorted()
+    FrequenciaUsoTipo.INTERVALO_ENTRE_DOSES -> horariosPorIntervalo()
 }
 
 private fun FrequenciaUsoDomain.horariosPorIntervalo(): List<LocalTime> {
@@ -106,21 +108,16 @@ fun getDatesBetween(startDate: LocalDate, endDate: LocalDate): List<LocalDate> {
     return dates
 }
 
-data class ScheduledMedicationItem(
-    val date: LocalDate,
-    val item: MedicationItem
-)
+data class ScheduledMedicationItem(val date: LocalDate, val item: MedicationItem)
 
-fun doseKey(medicamentoId: Long, date: LocalDate, horario: String): String {
-    return "${medicamentoId}_${date}_${horario}"
-}
+fun doseKey(medicamentoId: Long, date: LocalDate, horario: String): String = "${medicamentoId}_${date}_$horario"
 
 fun resolveDoseStatus(
     medicamentoId: Long,
     date: LocalDate,
     horario: LocalTime,
     confirmedDoseKeys: Set<String>,
-    now: LocalDateTime = LocalDateTime.now()
+    now: LocalDateTime = LocalDateTime.now(),
 ): DoseStatus {
     val horarioFormatado = horario.format(timeFormatter)
     if (doseKey(medicamentoId, date, horarioFormatado) in confirmedDoseKeys) {

@@ -13,7 +13,7 @@ data class MedicationItem(
     val imagemUrl: String?,
     val isContinuous: Boolean,
     val isGenerico: Boolean,
-    val status: DoseStatus
+    val status: DoseStatus,
 )
 
 enum class DoseStatus {
@@ -21,5 +21,5 @@ enum class DoseStatus {
     AVAILABLE,
     LATE,
     CONFIRMED,
-    EXPIRED
+    EXPIRED,
 }

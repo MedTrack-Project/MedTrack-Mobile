@@ -16,7 +16,7 @@ fun UsuarioDto.toDomain() = Usuario(
     id = id,
     nome = nome,
     email = email,
-    nomeUsuario = nomeUsuario
+    nomeUsuario = nomeUsuario,
 )
 
 fun MedicamentoDto.toDomain() = MedicamentoDomain(
@@ -25,7 +25,7 @@ fun MedicamentoDto.toDomain() = MedicamentoDomain(
     compostoAtivo = compostoAtivo,
     dosagem = dosagem,
     imagemUrl = imagemUrl,
-    frequenciaUso = frequenciaUso.toDomain()
+    frequenciaUso = frequenciaUso.toDomain(),
 )
 
 fun FrequenciaUsoDto.toDomain() = FrequenciaUsoDomain(
@@ -35,7 +35,7 @@ fun FrequenciaUsoDto.toDomain() = FrequenciaUsoDomain(
     intervaloHoras = intervaloHoras,
     primeiroHorario = primeiroHorario?.let { LocalTime.parse(it) },
     dataInicio = dataInicio?.let { LocalDate.parse(it) },
-    dataTermino = dataTermino?.let { LocalDate.parse(it) }
+    dataTermino = dataTermino?.let { LocalDate.parse(it) },
 )
 
 fun MedicamentoScanDto.toCapturadoDomain() = MedicamentoCapturadoDomain(
@@ -43,5 +43,5 @@ fun MedicamentoScanDto.toCapturadoDomain() = MedicamentoCapturadoDomain(
     compostoAtivo = agente_ativo ?: "Nao identificado",
     dosagem = dosagem ?: "N/A",
     quantidade = quantidade ?: "0",
-    validade = validade ?: ""
+    validade = validade ?: "",
 )

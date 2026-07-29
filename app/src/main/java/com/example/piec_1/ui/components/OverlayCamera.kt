@@ -24,10 +24,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun OverlayCamera(
-    isRectangleDetected: Boolean,
-    framePosition: Rect? = null
-) {
+fun OverlayCamera(isRectangleDetected: Boolean, framePosition: Rect? = null) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val overlayAlpha = if (isRectangleDetected) 0.0f else 0.6f
 
@@ -50,11 +47,11 @@ fun OverlayCamera(
                         color = Color.Transparent,
                         topLeft = Offset(
                             (canvasWidth - rectWidth) / 2,
-                            (canvasHeight - rectHeight) / 2
+                            (canvasHeight - rectHeight) / 2,
                         ),
                         size = Size(rectWidth, rectHeight),
                         cornerRadius = CornerRadius(16.dp.toPx()),
-                        blendMode = BlendMode.Clear
+                        blendMode = BlendMode.Clear,
                     )
                     restoreToCount(checkpoint)
                 }
@@ -63,11 +60,11 @@ fun OverlayCamera(
                     color = Color.White.copy(alpha = 0.3f),
                     topLeft = Offset(
                         (canvasWidth - rectWidth) / 2,
-                        (canvasHeight - rectHeight) / 2
+                        (canvasHeight - rectHeight) / 2,
                     ),
                     size = Size(rectWidth, rectHeight),
                     cornerRadius = CornerRadius(16.dp.toPx()),
-                    style = Stroke(width = 1.dp.toPx())
+                    style = Stroke(width = 1.dp.toPx()),
                 )
             }
 
@@ -76,7 +73,7 @@ fun OverlayCamera(
                     rect.left.toFloat(),
                     rect.top.toFloat(),
                     rect.right.toFloat(),
-                    rect.bottom.toFloat()
+                    rect.bottom.toFloat(),
                 )
 
                 val path = Path().apply {
@@ -103,8 +100,8 @@ fun OverlayCamera(
                     style = Stroke(
                         width = strokeWidth,
                         cap = StrokeCap.Round,
-                        join = StrokeJoin.Round
-                    )
+                        join = StrokeJoin.Round,
+                    ),
                 )
             }
         }
@@ -116,7 +113,7 @@ fun OverlayCamera(
                 color = Color.White,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 240.dp)
+                    .offset(y = 240.dp),
             )
         }
     }

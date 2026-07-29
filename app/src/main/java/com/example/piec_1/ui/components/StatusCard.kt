@@ -34,14 +34,22 @@ fun StatusCard(medicamento: MedicamentoCapturadoDomain, isSuccess: Boolean) {
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = bgColor),
         border = BorderStroke(2.dp, strokeColor),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = strokeColor, modifier = Modifier.size(48.dp))
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = strokeColor,
+                modifier = Modifier.size(48.dp),
+            )
             Text(
                 text = if (isSuccess) "Identificado com Sucesso!" else "Falha na Identificação",
                 style = MaterialTheme.typography.titleMedium,
-                color = strokeColor
+                color = strokeColor,
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -55,7 +63,10 @@ fun StatusCard(medicamento: MedicamentoCapturadoDomain, isSuccess: Boolean) {
                     Text("Validade: ${medicamento.validade}")
                 }
             } else {
-                Text("Dica: Tente focar melhor o texto e evite reflexos.", textAlign = TextAlign.Center)
+                Text(
+                    "Dica: Tente focar melhor o texto e evite reflexos.",
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }

@@ -30,10 +30,7 @@ import com.example.piec_1.domain.model.DoseStatus
 import com.example.piec_1.domain.model.MedicationItem
 
 @Composable
-fun HorarioCard(
-    item: MedicationItem,
-    onClick: (MedicationItem) -> Unit
-) {
+fun HorarioCard(item: MedicationItem, onClick: (MedicationItem) -> Unit) {
     val statusStyle = doseStatusStyle(item.status)
     val isEnabled = item.status != DoseStatus.FUTURE && item.status != DoseStatus.CONFIRMED
 
@@ -44,36 +41,36 @@ fun HorarioCard(
             .clickable(enabled = isEnabled) { onClick(item) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = statusStyle.containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.nomeExibicao,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = statusStyle.contentColor
+                    color = statusStyle.contentColor,
                 )
                 if (item.isGenerico) {
                     Text(
                         text = "Medicamento Generico",
                         style = MaterialTheme.typography.labelSmall,
-                        color = statusStyle.secondaryContentColor
+                        color = statusStyle.secondaryContentColor,
                     )
                 }
                 Text(
                     text = item.dosagem,
                     style = MaterialTheme.typography.labelMedium,
-                    color = statusStyle.secondaryContentColor
+                    color = statusStyle.secondaryContentColor,
                 )
                 Text(
                     text = statusStyle.label,
                     style = MaterialTheme.typography.labelSmall,
-                    color = statusStyle.contentColor
+                    color = statusStyle.contentColor,
                 )
             }
 
@@ -84,12 +81,12 @@ fun HorarioCard(
                     imageVector = statusStyle.icon,
                     contentDescription = statusStyle.label,
                     tint = statusStyle.contentColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
                 Text(
                     text = item.horario,
                     style = MaterialTheme.typography.titleMedium,
-                    color = statusStyle.contentColor
+                    color = statusStyle.contentColor,
                 )
             }
         }
@@ -97,44 +94,42 @@ fun HorarioCard(
 }
 
 @Composable
-private fun doseStatusStyle(status: DoseStatus): DoseStatusStyle {
-    return when (status) {
-        DoseStatus.FUTURE -> DoseStatusStyle(
-            label = "Liberado no horario",
-            icon = Icons.Default.Lock,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            secondaryContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f)
-        )
-        DoseStatus.AVAILABLE -> DoseStatusStyle(
-            label = "Disponivel para confirmar",
-            icon = Icons.Default.Schedule,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            secondaryContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        DoseStatus.LATE -> DoseStatusStyle(
-            label = "Dose atrasada",
-            icon = Icons.Default.Warning,
-            containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.10f),
-            contentColor = MaterialTheme.colorScheme.error,
-            secondaryContentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.82f)
-        )
-        DoseStatus.CONFIRMED -> DoseStatusStyle(
-            label = "Dose confirmada",
-            icon = Icons.Default.CheckCircle,
-            containerColor = Color(0xFFE8F5E9),
-            contentColor = Color(0xFF2E7D32),
-            secondaryContentColor = Color(0xFF2E7D32).copy(alpha = 0.78f)
-        )
-        DoseStatus.EXPIRED -> DoseStatusStyle(
-            label = "Horario expirado",
-            icon = Icons.Default.Warning,
-            containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.10f),
-            contentColor = MaterialTheme.colorScheme.error,
-            secondaryContentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.82f)
-        )
-    }
+private fun doseStatusStyle(status: DoseStatus): DoseStatusStyle = when (status) {
+    DoseStatus.FUTURE -> DoseStatusStyle(
+        label = "Liberado no horario",
+        icon = Icons.Default.Lock,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        secondaryContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+    )
+    DoseStatus.AVAILABLE -> DoseStatusStyle(
+        label = "Disponivel para confirmar",
+        icon = Icons.Default.Schedule,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        secondaryContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    DoseStatus.LATE -> DoseStatusStyle(
+        label = "Dose atrasada",
+        icon = Icons.Default.Warning,
+        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.10f),
+        contentColor = MaterialTheme.colorScheme.error,
+        secondaryContentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.82f),
+    )
+    DoseStatus.CONFIRMED -> DoseStatusStyle(
+        label = "Dose confirmada",
+        icon = Icons.Default.CheckCircle,
+        containerColor = Color(0xFFE8F5E9),
+        contentColor = Color(0xFF2E7D32),
+        secondaryContentColor = Color(0xFF2E7D32).copy(alpha = 0.78f),
+    )
+    DoseStatus.EXPIRED -> DoseStatusStyle(
+        label = "Horario expirado",
+        icon = Icons.Default.Warning,
+        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.10f),
+        contentColor = MaterialTheme.colorScheme.error,
+        secondaryContentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.82f),
+    )
 }
 
 private data class DoseStatusStyle(
@@ -142,5 +137,5 @@ private data class DoseStatusStyle(
     val icon: ImageVector,
     val containerColor: Color,
     val contentColor: Color,
-    val secondaryContentColor: Color
+    val secondaryContentColor: Color,
 )

@@ -35,11 +35,7 @@ import com.example.piec_1.ui.components.ListaHorarios
 import com.example.piec_1.ui.screen.viewModel.LoginViewModel
 
 @Composable
-fun TelaPrincipal(
-    loginViewModel: LoginViewModel,
-    onHorarioClick: (MedicationItem) -> Unit
-) {
-
+fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationItem) -> Unit) {
     val usuario by loginViewModel.usuario.observeAsState()
     val medicamentos by loginViewModel.medicamentos.observeAsState()
     val dosesConfirmadas by loginViewModel.dosesConfirmadas.observeAsState(emptySet())
@@ -54,7 +50,7 @@ fun TelaPrincipal(
     if (isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
@@ -63,7 +59,7 @@ fun TelaPrincipal(
 
                 Text(
                     text = "Buscando dados do usuario...",
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -77,10 +73,10 @@ fun TelaPrincipal(
                 Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary
-                    )
-                )
-            )
+                        MaterialTheme.colorScheme.secondary,
+                    ),
+                ),
+            ),
     ) {
         Surface(
             modifier = Modifier
@@ -88,29 +84,29 @@ fun TelaPrincipal(
                 .fillMaxHeight(0.9f)
                 .align(Alignment.BottomCenter),
             color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
                         modifier = Modifier
                             .size(45.dp)
                             .background(MaterialTheme.colorScheme.primary, CircleShape)
                             .padding(8.dp),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.medtrack_white_icon),
                             contentDescription = null,
-                            tint = Color.White
+                            tint = Color.White,
                         )
                     }
 
@@ -118,7 +114,7 @@ fun TelaPrincipal(
                         painter = painterResource(id = R.drawable.user_icon),
                         contentDescription = "Perfil",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(45.dp)
+                        modifier = Modifier.size(45.dp),
                     )
                 }
 
@@ -127,13 +123,13 @@ fun TelaPrincipal(
                 Text(
                     text = "Ola, ${usuario?.nome ?: "Usuario"}",
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 Text(
                     text = "Seus medicamentos da semana",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -142,7 +138,7 @@ fun TelaPrincipal(
                     ListaHorarios(
                         medicamentos = medicamentos ?: emptyList(),
                         dosesConfirmadas = dosesConfirmadas,
-                        onHorarioClick = onHorarioClick
+                        onHorarioClick = onHorarioClick,
                     )
                 }
             }

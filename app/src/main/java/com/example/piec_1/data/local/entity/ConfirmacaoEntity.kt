@@ -7,13 +7,15 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "confirmacoes",
-    foreignKeys = [ForeignKey(
-        entity = MedicamentoEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["medicamentoId"],
-        onDelete = ForeignKey.NO_ACTION
-    )],
-    indices = [Index(value = ["medicamentoId"])]
+    foreignKeys = [
+        ForeignKey(
+            entity = MedicamentoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["medicamentoId"],
+            onDelete = ForeignKey.NO_ACTION,
+        ),
+    ],
+    indices = [Index(value = ["medicamentoId"])],
 )
 data class ConfirmacaoEntity(
     @PrimaryKey(autoGenerate = true)
@@ -23,5 +25,5 @@ data class ConfirmacaoEntity(
     val data: String,
     val foiTomado: Boolean,
     val observacao: String? = null,
-    val sincronizado: Boolean = false
+    val sincronizado: Boolean = false,
 )

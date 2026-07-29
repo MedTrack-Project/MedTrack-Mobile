@@ -23,27 +23,27 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = Color(0xFF00363D),
     onBackground = Color(0xFF1A1C1E),
     onSurface = Color(0xFF1A1C1E),
-    error = Color(0xFFBA1A1A)
+    error = Color(0xFFBA1A1A),
 )
 
 @Composable
 fun PIEC1Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-        val context = LocalContext.current
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-      darkTheme -> DarkColorScheme
-      else -> LightColorScheme
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
     }
 
     MaterialTheme(
-      colorScheme = colorScheme,
-      typography = AppTypography,
-      content = content
+        colorScheme = colorScheme,
+        typography = AppTypography,
+        content = content,
     )
 }

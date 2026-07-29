@@ -27,7 +27,7 @@ object NotificationHelper {
         horario: String,
         imagemUrl: String? = null,
         dataAgendamento: String? = null,
-        notificationId: Int? = null
+        notificationId: Int? = null,
     ) {
         createNotificationChannel(context)
 
@@ -38,7 +38,7 @@ object NotificationHelper {
             data = AppRoutes.doseHorarioDeepLink(
                 medicamentoId = medicamentoId,
                 data = dataAgendamento ?: LocalDate.now().toString(),
-                horario = horarioFormatado
+                horario = horarioFormatado,
             ).toUri()
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("medicamentoId", medicamentoId)
@@ -49,7 +49,7 @@ object NotificationHelper {
             context,
             medicamentoId.toInt(),
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
         val bigTextStyle = NotificationCompat.BigTextStyle()
@@ -71,7 +71,9 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .build()
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = context.getSystemService(
+            Context.NOTIFICATION_SERVICE,
+        ) as NotificationManager
         notificationManager.notify(notificationId ?: medicamentoId.toInt(), notification)
     }
 
@@ -79,7 +81,7 @@ object NotificationHelper {
         val channel = NotificationChannel(
             "medicamento_channel",
             "Lembretes de Medicamentos",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = "Notificacoes para lembrar de tomar medicamentos"
             enableVibration(true)
@@ -99,7 +101,6 @@ object NotificationHelper {
         }.getOrNull() ?: defaultBitmap(context)
     }
 
-    private fun defaultBitmap(context: Context): Bitmap {
-        return BitmapFactory.decodeResource(context.resources, R.drawable.medtrack_white_icon)
-    }
+    private fun defaultBitmap(context: Context): Bitmap =
+        BitmapFactory.decodeResource(context.resources, R.drawable.medtrack_white_icon)
 }

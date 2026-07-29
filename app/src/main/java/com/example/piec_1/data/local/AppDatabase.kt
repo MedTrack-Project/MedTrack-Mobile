@@ -21,10 +21,10 @@ import com.example.piec_1.data.local.entity.UsuarioEntity
         MedicamentoEntity::class,
         NotificacaoEntity::class,
         ConfirmacaoEntity::class,
-        ScanQueueItem::class, ],
-    version = 9
+        ScanQueueItem::class,
+    ],
+    version = 9,
 )
-
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun usuarioDao(): UsuarioDao
@@ -36,27 +36,24 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                                context.applicationContext,
-                                AppDatabase::class.java,
-                                "app_database_db"
+        fun getDatabase(context: Context): AppDatabase = INSTANCE ?: synchronized(this) {
+            val instance = Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java,
+                "app_database_db",
+            )
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_2_3,
+                    MIGRATION_3_4,
+                    MIGRATION_6_7,
+                    MIGRATION_7_8,
+                    MIGRATION_8_9,
                 )
-                    .addMigrations(
-                        MIGRATION_1_2,
-                        MIGRATION_2_3,
-                        MIGRATION_3_4,
-                        MIGRATION_6_7,
-                        MIGRATION_7_8,
-                        MIGRATION_8_9
-                    )
-                    .fallbackToDestructiveMigration(false)
-                    .build()
-                INSTANCE = instance
-                instance
-            }
+                .fallbackToDestructiveMigration(false)
+                .build()
+            INSTANCE = instance
+            instance
         }
     }
 }

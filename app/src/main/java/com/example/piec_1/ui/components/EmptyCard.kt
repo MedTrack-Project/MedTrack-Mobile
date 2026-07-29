@@ -31,23 +31,23 @@ fun EmptyCard() {
             .background(Color.White, shape = RoundedCornerShape(8.dp))
             .border(1.dp, Color.LightGray, shape = RoundedCornerShape(8.dp))
             .padding(16.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_empty),
                 contentDescription = "Nenhum medicamento cadastrado",
                 tint = Color.Gray,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Nenhum medicamento cadastrado.",
                 fontSize = 16.sp,
-                color = Color.Gray
+                color = Color.Gray,
             )
         }
     }

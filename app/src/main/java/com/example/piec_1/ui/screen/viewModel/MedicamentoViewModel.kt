@@ -12,13 +12,12 @@ import com.example.piec_1.utils.exceptions.DoseForaDoHorarioException
 import com.example.piec_1.utils.exceptions.MedicamentoNaoEncontradoException
 import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class MedicamentoViewModel @Inject constructor(
-    private val medicamentoRepository: MedicamentoRepositoryContract
-) : ViewModel() {
+class MedicamentoViewModel @Inject constructor(private val medicamentoRepository: MedicamentoRepositoryContract) :
+    ViewModel() {
 
     private val _uiState = MutableLiveData<MedicamentoUIState>(MedicamentoUIState.Idle)
     val uiState: LiveData<MedicamentoUIState> get() = _uiState
@@ -35,7 +34,7 @@ class MedicamentoViewModel @Inject constructor(
         comprovanteImagemUri: Uri?,
         selectedDose: SelectedDose?,
         onSuccess: () -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
     ) {
         viewModelScope.launch {
             _uiState.value = MedicamentoUIState.Loading
@@ -46,7 +45,7 @@ class MedicamentoViewModel @Inject constructor(
                     comprovanteImagemUri = comprovanteImagemUri,
                     medicamentoSelecionadoId = selectedDose?.medicamentoId,
                     dataSelecionada = selectedDose?.data,
-                    horarioSelecionado = selectedDose?.horario
+                    horarioSelecionado = selectedDose?.horario,
                 )
                 _uiState.value = MedicamentoUIState.Success("Medicamento confirmado!")
                 onSuccess()

@@ -1,13 +1,13 @@
 package com.example.piec_1.data.remote.mapper
 
-import com.example.piec_1.data.remote.dto.MedicamentoScanDto
 import com.example.piec_1.data.remote.dto.FrequenciaUsoDto
+import com.example.piec_1.data.remote.dto.MedicamentoScanDto
 import com.example.piec_1.data.remote.dto.UsuarioDto
 import com.example.piec_1.domain.model.FrequenciaUsoTipo
+import java.time.LocalTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.time.LocalTime
 
 class RemoteMappersTest {
 
@@ -17,7 +17,7 @@ class RemoteMappersTest {
             id = 3,
             nome = "Maria Silva",
             email = "maria@example.com",
-            nomeUsuario = "maria"
+            nomeUsuario = "maria",
         ).toDomain()
 
         assertEquals(3L, domain.id)
@@ -33,7 +33,7 @@ class RemoteMappersTest {
             agente_ativo = "Losartana Potassica",
             dosagem = "50mg",
             quantidade = "30 comprimidos",
-            validade = "2027-01"
+            validade = "2027-01",
         ).toCapturadoDomain()
 
         assertEquals("Losartana", domain.nome)
@@ -50,7 +50,7 @@ class RemoteMappersTest {
             agente_ativo = null,
             dosagem = null,
             quantidade = null,
-            validade = null
+            validade = null,
         ).toCapturadoDomain()
 
         assertEquals("Nao identificado", domain.nome)
@@ -69,7 +69,7 @@ class RemoteMappersTest {
             intervaloHoras = 8,
             primeiroHorario = null,
             dataInicio = null,
-            dataTermino = null
+            dataTermino = null,
         ).toDomain()
 
         assertEquals(FrequenciaUsoTipo.INTERVALO_ENTRE_DOSES, domain.frequenciaUsoTipo)
@@ -88,7 +88,7 @@ class RemoteMappersTest {
             agente_ativo = null,
             dosagem = "25mg",
             quantidade = null,
-            validade = "2028-02"
+            validade = "2028-02",
         ).toCapturadoDomain()
 
         assertEquals("Atenolol", domain.nome)

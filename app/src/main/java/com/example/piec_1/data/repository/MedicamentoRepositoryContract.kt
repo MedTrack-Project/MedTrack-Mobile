@@ -16,6 +16,6 @@ interface MedicamentoRepositoryContract {
         comprovanteImagemUri: Uri?,
         medicamentoSelecionadoId: Long? = null,
         dataSelecionada: String? = null,
-        horarioSelecionado: String? = null
+        horarioSelecionado: String? = null,
     )
 }

@@ -36,15 +36,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.URL
 
 @Composable
-fun MedicamentoImage(
-    imagemUrl: String?,
-    modifier: Modifier = Modifier
-) {
+fun MedicamentoImage(imagemUrl: String?, modifier: Modifier = Modifier) {
     var bitmap by remember(imagemUrl) { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember(imagemUrl) { mutableStateOf(!imagemUrl.isNullOrBlank()) }
     var showExpandedImage by remember { mutableStateOf(false) }
@@ -68,7 +65,7 @@ fun MedicamentoImage(
             .clip(RoundedCornerShape(20.dp))
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
             .clickable(enabled = bitmap != null) { showExpandedImage = true },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         when {
             bitmap != null -> {
@@ -76,7 +73,7 @@ fun MedicamentoImage(
                     bitmap = bitmap!!.asImageBitmap(),
                     contentDescription = "Imagem do medicamento",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
                 )
             }
             isLoading -> {
@@ -87,7 +84,7 @@ fun MedicamentoImage(
                     imageVector = Icons.Default.Image,
                     contentDescription = "Medicamento sem imagem",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(72.dp)
+                    modifier = Modifier.size(72.dp),
                 )
             }
         }
@@ -96,17 +93,14 @@ fun MedicamentoImage(
     if (showExpandedImage && bitmap != null) {
         ExpandedMedicationImage(
             bitmap = bitmap!!,
-            onDismiss = { showExpandedImage = false }
+            onDismiss = { showExpandedImage = false },
         )
     }
 }
 
 @Suppress("DEPRECATION")
 @Composable
-private fun ExpandedMedicationImage(
-    bitmap: Bitmap,
-    onDismiss: () -> Unit
-) {
+private fun ExpandedMedicationImage(bitmap: Bitmap, onDismiss: () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     val transformState = rememberTransformableState { zoomChange, _, _ ->
         scale = (scale * zoomChange).coerceIn(1f, 5f)
@@ -114,13 +108,13 @@ private fun ExpandedMedicationImage(
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
@@ -130,10 +124,10 @@ private fun ExpandedMedicationImage(
                     .padding(20.dp)
                     .graphicsLayer(
                         scaleX = scale,
-                        scaleY = scale
+                        scaleY = scale,
                     )
                     .transformable(transformState),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
             )
 
             IconButton(
@@ -141,12 +135,12 @@ private fun ExpandedMedicationImage(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(24.dp)
-                    .background(Color.White.copy(alpha = 0.16f), RoundedCornerShape(20.dp))
+                    .background(Color.White.copy(alpha = 0.16f), RoundedCornerShape(20.dp)),
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Fechar imagem",
-                    tint = Color.White
+                    tint = Color.White,
                 )
             }
         }

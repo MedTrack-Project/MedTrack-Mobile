@@ -13,7 +13,7 @@ class UsuarioMappersTest {
             id = 9,
             nome = "Joao Souza",
             email = "joao@example.com",
-            nomeUsuario = "joao"
+            nomeUsuario = "joao",
         )
 
         val entity = usuario.toEntity()
@@ -24,9 +24,9 @@ class UsuarioMappersTest {
                 id = 9,
                 nome = "Joao Souza",
                 email = "joao@example.com",
-                nomeUsuario = "joao"
+                nomeUsuario = "joao",
             ),
-            entity
+            entity,
         )
         assertEquals(usuario, mappedBack)
     }

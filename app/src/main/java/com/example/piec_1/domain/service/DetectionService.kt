@@ -26,14 +26,14 @@ class DetectionService @Inject constructor() {
         image: Bitmap,
         previewWidth: Int,
         previewHeight: Int,
-        onDetectionResult: (Boolean, Rect?) -> Unit
+        onDetectionResult: (Boolean, Rect?) -> Unit,
     ) {
         val inputImage = InputImage.fromBitmap(image, 0)
 
         objectDetector.process(inputImage)
             .addOnSuccessListener { detectedObjects ->
                 val rect = detectedObjects
-                    .map{ it.boundingBox }
+                    .map { it.boundingBox }
                     .find { isRectagle(it, previewWidth, previewHeight) }
 
                 if (rect != null) {
@@ -42,7 +42,7 @@ class DetectionService @Inject constructor() {
                         image.width,
                         image.height,
                         previewWidth,
-                        previewHeight
+                        previewHeight,
                     )
                     onDetectionResult(true, adjustedBounds)
                 } else {
@@ -74,7 +74,7 @@ class DetectionService @Inject constructor() {
         imageWidth: Int,
         imageHeight: Int,
         previewWidth: Int,
-        previewHeight: Int
+        previewHeight: Int,
     ): Rect {
         val scaleX = previewWidth.toFloat() / imageWidth
         val scaleY = previewHeight.toFloat() / imageHeight
@@ -83,7 +83,7 @@ class DetectionService @Inject constructor() {
             (boundingBox.left * scaleX).toInt(),
             (boundingBox.top * scaleY).toInt(),
             (boundingBox.right * scaleX).toInt(),
-            (boundingBox.bottom * scaleY).toInt()
+            (boundingBox.bottom * scaleY).toInt(),
         )
     }
 }
