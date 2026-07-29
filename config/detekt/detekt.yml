@@ -1,0 +1,47 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+build:
+  maxIssues: 0
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 60
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 10
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 15
+    thresholdInClasses: 15
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+  SwallowedException:
+    active: true
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    active: true
+
+style:
+  ForbiddenComment:
+    active: true
+    comments:
+      - reason: "TODO deve referenciar uma issue."
+        value: "TODO:"
+      - reason: "FIXME deve referenciar uma issue."
+        value: "FIXME:"
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+    excludeCommentStatements: true
+  ReturnCount:
+    active: true
+    max: 3
