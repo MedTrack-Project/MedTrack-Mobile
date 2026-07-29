@@ -67,7 +67,10 @@ class MainActivity : ComponentActivity() {
         val medicamentoJson = intent.getStringExtra("medicamento_json") ?: return
 
         try {
-            val medicamento = Gson().fromJson(medicamentoJson, MedicamentoCapturadoDomain::class.java)
+            val medicamento = Gson().fromJson(
+                medicamentoJson,
+                MedicamentoCapturadoDomain::class.java,
+            )
             NavigationManager.setMedicamento(medicamento)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -82,19 +85,17 @@ class MainActivity : ComponentActivity() {
         Toast.makeText(
             this,
             "Por favor, habilite as notificacoes nas configuracoes do aplicativo",
-            Toast.LENGTH_LONG
+            Toast.LENGTH_LONG,
         ).show()
     }
 
-    private fun areNotificationsEnabled(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            true
-        }
+    private fun areNotificationsEnabled(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
     }
 }
 
@@ -105,7 +106,7 @@ private fun RequestPermission(onPermissionResult: (Boolean) -> Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(
                 Manifest.permission.CAMERA,
-                Manifest.permission.POST_NOTIFICATIONS
+                Manifest.permission.POST_NOTIFICATIONS,
             )
         } else {
             arrayOf(Manifest.permission.CAMERA)
@@ -113,7 +114,7 @@ private fun RequestPermission(onPermissionResult: (Boolean) -> Unit) {
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
     ) { permissionsMap ->
         val allGranted = permissionsMap.values.all { it }
         onPermissionResult(allGranted)
@@ -121,7 +122,7 @@ private fun RequestPermission(onPermissionResult: (Boolean) -> Unit) {
             Toast.makeText(
                 context,
                 "Algumas permissoes necessarias foram negadas!",
-                Toast.LENGTH_LONG
+                Toast.LENGTH_LONG,
             ).show()
         }
     }

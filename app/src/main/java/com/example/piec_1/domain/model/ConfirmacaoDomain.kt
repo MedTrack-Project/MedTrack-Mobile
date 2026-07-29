@@ -7,5 +7,5 @@ data class ConfirmacaoDomain(
     val data: String,
     val foiTomado: Boolean,
     val observacao: String? = null,
-    val sincronizado: Boolean = false
+    val sincronizado: Boolean = false,
 )

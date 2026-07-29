@@ -7,18 +7,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SessionManager @Inject constructor(
-    @ApplicationContext context: Context
-) {
+class SessionManager @Inject constructor(@ApplicationContext context: Context) {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun saveToken(token: String) {
         prefs.edit { putString(KEY_TOKEN, token) }
     }
 
-    fun getToken(): String? {
-        return prefs.getString(KEY_TOKEN, null)
-    }
+    fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
     companion object {
         private const val PREFS_NAME = "MyAppPrefs"

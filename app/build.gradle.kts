@@ -1,3 +1,4 @@
+import io.gitlab.arturbosch.detekt.Detekt
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,8 @@ plugins {
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kover)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 val localProperties = Properties().apply {
@@ -15,16 +18,13 @@ val localProperties = Properties().apply {
     }
 }
 
-fun projectConfig(name: String, fallback: String): String {
-    return providers.gradleProperty(name)
-        .orElse(localProperties.getProperty(name) ?: fallback)
-        .get()
-}
+fun projectConfig(name: String, fallback: String): String = providers.gradleProperty(name)
+    .orElse(localProperties.getProperty(name) ?: fallback)
+    .get()
 
 android {
     namespace = "com.example.piec_1"
     compileSdk = 37
-
 
     defaultConfig {
         applicationId = "com.example.piec_1"
@@ -40,7 +40,6 @@ android {
 
         buildConfigField("String", "MEDTRACK_API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "MEDTRACK_SCAN_URL", "\"$scanUrl\"")
-
     }
 
     buildTypes {
@@ -48,7 +47,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -66,11 +65,37 @@ android {
         compose = true
         buildConfig = true
     }
-
 }
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+ktlint {
+    android.set(true)
+    outputToConsole.set(true)
+    ignoreFailures.set(false)
+    filter {
+        exclude("**/build/**")
+        exclude("**/generated/**")
+    }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+    baseline = rootProject.file("config/detekt/baseline.xml")
+}
+
+tasks.withType<Detekt>().configureEach {
+    jvmTarget = "21"
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        sarif.required.set(true)
+        md.required.set(false)
+    }
 }
 
 kover {
@@ -90,33 +115,6 @@ kover {
                     "dagger/hilt/internal/aggregatedroot/codegen/*",
                     "dagger.hilt.internal.processedrootsentinel.codegen.*",
                     "dagger/hilt/internal/processedrootsentinel/codegen/*",
-                    "com.example.piec_1.MainActivity",
-                    "com.example.piec_1.MainActivityKt*",
-                    "com.example.piec_1.MedTrackApp",
-                    "com.example.piec_1.di.*",
-                    "com.example.piec_1.data.local.AppDatabase*",
-                    "com.example.piec_1.data.local.Migrations*",
-                    "com.example.piec_1.data.local.daos.*",
-                    "com.example.piec_1.data.local.entity.*",
-                    "com.example.piec_1.data.remote.ApiService*",
-                    "com.example.piec_1.data.remote.dto.*",
-                    "com.example.piec_1.data.repository.AuthRepository*",
-                    "com.example.piec_1.data.repository.LoginData*",
-                    "com.example.piec_1.data.repository.LoginException*",
-                    "com.example.piec_1.data.repository.MedicamentoRepository*",
-                    "com.example.piec_1.data.repository.ScanRepository*",
-                    "com.example.piec_1.data.session.*",
-                    "com.example.piec_1.domain.service.*",
-                    "com.example.piec_1.ui.components.*",
-                    "com.example.piec_1.ui.navigation.*",
-                    "com.example.piec_1.ui.screen.Tela*",
-                    "com.example.piec_1.ui.screen.viewModel.CameraViewModel*",
-                    "com.example.piec_1.ui.screen.viewModel.LoginViewModel*",
-                    "com.example.piec_1.ui.theme.*",
-                    "com.example.piec_1.utils.MultipartImageUtils*",
-                    "com.example.piec_1.utils.connection.*",
-                    "com.example.piec_1.utils.exceptions.*",
-                    "com.example.piec_1.utils.notifications.*",
                     "*.*_Factory",
                     "*.*_MembersInjector",
                     "*.Hilt_*",
@@ -129,8 +127,14 @@ kover {
                     "**/hilt_aggregated_deps/**",
                     "**/dagger/hilt/internal/**",
                     "hilt_aggregated_deps/**",
-                    "dagger/hilt/internal/**"
+                    "dagger/hilt/internal/**",
                 )
+            }
+        }
+        verify {
+            rule("Baseline global inicial") {
+                // Gate conservador sobre todo o código de produção. Deve subir sem novas exclusões.
+                minBound(5)
             }
         }
     }

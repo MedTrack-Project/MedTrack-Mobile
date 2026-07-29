@@ -10,5 +10,5 @@ data class FrequenciaUsoDomain(
     val intervaloHoras: Int?,
     val primeiroHorario: LocalTime?,
     val dataInicio: LocalDate?,
-    val dataTermino: LocalDate?
+    val dataTermino: LocalDate?,
 )

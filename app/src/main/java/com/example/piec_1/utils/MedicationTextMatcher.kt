@@ -16,24 +16,22 @@ object MedicationTextMatcher {
         "oral",
         "uso",
         "adulto",
-        "pediatrico"
+        "pediatrico",
     )
 
     fun isMedicationMatch(
         savedName: String,
         capturedName: String,
         savedActiveIngredient: String,
-        capturedActiveIngredient: String
-    ): Boolean {
-        return similarity(savedName, capturedName) >= MATCH_THRESHOLD &&
-            similarity(savedActiveIngredient, capturedActiveIngredient) >= MATCH_THRESHOLD
-    }
+        capturedActiveIngredient: String,
+    ): Boolean = similarity(savedName, capturedName) >= MATCH_THRESHOLD &&
+        similarity(savedActiveIngredient, capturedActiveIngredient) >= MATCH_THRESHOLD
 
     fun medicationScore(
         savedName: String,
         capturedName: String,
         savedActiveIngredient: String,
-        capturedActiveIngredient: String
+        capturedActiveIngredient: String,
     ): Double {
         val nameScore = similarity(savedName, capturedName)
         val activeIngredientScore = similarity(savedActiveIngredient, capturedActiveIngredient)
@@ -46,7 +44,9 @@ object MedicationTextMatcher {
 
         if (savedNormalized.isBlank() || capturedNormalized.isBlank()) return 0.0
         if (savedNormalized == capturedNormalized) return 1.0
-        if (savedNormalized.contains(capturedNormalized) || capturedNormalized.contains(savedNormalized)) {
+        if (savedNormalized.contains(capturedNormalized) ||
+            capturedNormalized.contains(savedNormalized)
+        ) {
             return 0.92
         }
 
@@ -86,7 +86,7 @@ object MedicationTextMatcher {
                 current[j] = minOf(
                     current[j - 1] + 1,
                     previous[j] + 1,
-                    previous[j - 1] + cost
+                    previous[j - 1] + cost,
                 )
             }
             for (j in previous.indices) {

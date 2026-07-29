@@ -21,16 +21,16 @@ import androidx.compose.ui.unit.dp
 import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.model.MedicationItem
 import com.example.piec_1.domain.usecase.organizeMedicationsByDay
-import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 @Composable
 fun ListaHorarios(
     medicamentos: List<MedicamentoDomain>,
     dosesConfirmadas: Set<String>,
-    onHorarioClick: (MedicationItem) -> Unit
+    onHorarioClick: (MedicationItem) -> Unit,
 ) {
     var now by remember { mutableStateOf(LocalDateTime.now()) }
 
@@ -46,7 +46,7 @@ fun ListaHorarios(
             medicamentos = medicamentos,
             currentDate = LocalDate.now(),
             confirmedDoseKeys = dosesConfirmadas,
-            now = now
+            now = now,
         )
     }
 
@@ -56,7 +56,7 @@ fun ListaHorarios(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             medicamentosAgrupados.forEach { (date, itemsDoDia) ->
                 stickyHeader {
@@ -65,11 +65,11 @@ fun ListaHorarios(
 
                 items(
                     items = itemsDoDia,
-                    key = { item -> item.id }
+                    key = { item -> item.id },
                 ) { item ->
                     HorarioCard(
                         item = item,
-                        onClick = onHorarioClick
+                        onClick = onHorarioClick,
                     )
                 }
             }
@@ -92,6 +92,6 @@ fun DayHeader(date: LocalDate) {
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
-            .padding(vertical = 8.dp, horizontal = 4.dp)
+            .padding(vertical = 8.dp, horizontal = 4.dp),
     )
 }

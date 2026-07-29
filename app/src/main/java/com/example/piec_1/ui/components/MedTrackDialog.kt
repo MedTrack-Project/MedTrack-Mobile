@@ -15,7 +15,7 @@ fun MedTrackDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     confirmText: String = "Confirmar",
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -25,7 +25,7 @@ fun MedTrackDialog(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         },
         text = content,
@@ -34,6 +34,6 @@ fun MedTrackDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
+        },
     )
 }

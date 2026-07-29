@@ -26,15 +26,14 @@ interface ApiService {
     suspend fun getUsuario(@Header("Authorization") token: String): Response<UsuarioDto>
 
     @GET("medicamento/mobile/lista")
-    suspend fun getMedicamentos(@Header("Authorization") token: String)
-    : Response<List<MedicamentoDto>>
+    suspend fun getMedicamentos(@Header("Authorization") token: String): Response<List<MedicamentoDto>>
 
     @Multipart
     @POST("/api/confirmacao")
     suspend fun confirmarMedicamento(
         @Header("Authorization") token: String,
         @Part("dados") dados: RequestBody,
-        @Part imagem: MultipartBody.Part? = null
+        @Part imagem: MultipartBody.Part? = null,
     ): Response<ConfirmacaoResponseDto>
 
     @Multipart
@@ -42,8 +41,6 @@ interface ApiService {
     suspend fun scanMedicamento(
         @Url url: String,
         @Header("Authorization") token: String,
-        @Part image: MultipartBody.Part
+        @Part image: MultipartBody.Part,
     ): Response<ScanResponseDto>
-
-
 }

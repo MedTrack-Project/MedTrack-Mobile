@@ -15,15 +15,15 @@ import com.example.piec_1.domain.model.MedicamentoCapturadoDomain
 import com.example.piec_1.domain.service.ScanUpload
 import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Named
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
-import javax.inject.Inject
-import javax.inject.Named
-import javax.inject.Singleton
 
 @Singleton
 class ScanRepository @Inject constructor(
@@ -31,7 +31,7 @@ class ScanRepository @Inject constructor(
     private val apiService: ApiService,
     database: AppDatabase,
     private val authRepository: AuthRepository,
-    @param:Named("ScanUrl") private val scanUrl: String
+    @param:Named("ScanUrl") private val scanUrl: String,
 ) {
     private val scanQueueDao = database.scanQueueDao()
 
@@ -67,8 +67,8 @@ class ScanRepository @Inject constructor(
             ScanQueueItem(
                 imagePath = uri.toString(),
                 status = "PENDENTE",
-                timestamp = System.currentTimeMillis()
-            )
+                timestamp = System.currentTimeMillis(),
+            ),
         )
         agendarProcessamentoDeScansOffline()
     }
@@ -86,11 +86,7 @@ class ScanRepository @Inject constructor(
         WorkManager.getInstance(context).enqueue(scanWorkRequest)
     }
 
-    private suspend fun enviarImagemParaScan(
-        file: File,
-        token: String,
-        partName: String
-    ): ScanResponseDto? {
+    private suspend fun enviarImagemParaScan(file: File, token: String, partName: String): ScanResponseDto? {
         val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData(partName, file.name, requestFile)
         val response = apiService.scanMedicamento(scanUrl, "Bearer $token", body)

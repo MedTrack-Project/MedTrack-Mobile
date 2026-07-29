@@ -45,7 +45,7 @@ import com.example.piec_1.utils.connection.ConnectivityObserver
 fun TelaCamera(
     onBackClick: () -> Unit,
     viewModel: CameraViewModel = hiltViewModel(),
-    connectivityObserver: ConnectivityObserver
+    connectivityObserver: ConnectivityObserver,
 ) {
     var showOfflineDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -61,27 +61,26 @@ fun TelaCamera(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         AndroidView(
             factory = { previewView },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
 
         OverlayCamera(
             isRectangleDetected = isRectangleDetected,
-            framePosition = framePosition
+            framePosition = framePosition,
         )
 
         IconButton(
             onClick = onBackClick,
             modifier = Modifier
                 .padding(top = 40.dp, start = 16.dp)
-                .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                .background(Color.Black.copy(alpha = 0.3f), CircleShape),
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Voltar",
-                tint = Color.White
+                tint = Color.White,
             )
         }
 
@@ -91,9 +90,12 @@ fun TelaCamera(
                 .padding(bottom = 60.dp)
                 .size(80.dp)
                 .background(
-                    color = if (isRectangleDetected) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                    else Color.White.copy(alpha = 0.2f),
-                    shape = CircleShape
+                    color = if (isRectangleDetected) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                    } else {
+                        Color.White.copy(alpha = 0.2f)
+                    },
+                    shape = CircleShape,
                 )
                 .clickable(enabled = isRectangleDetected) {
                     if (isWifi) {
@@ -104,16 +106,15 @@ fun TelaCamera(
                         showOfflineDialog = true
                     }
                 },
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Surface(
                 modifier = Modifier.size(60.dp),
                 shape = CircleShape,
                 color = if (isRectangleDetected) MaterialTheme.colorScheme.primary else Color.White,
-                border = BorderStroke(4.dp, Color.Black.copy(alpha = 0.1f))
+                border = BorderStroke(4.dp, Color.Black.copy(alpha = 0.1f)),
             ) {}
         }
-
 
         if (isLoading) {
             Box(
@@ -121,20 +122,20 @@ fun TelaCamera(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.6f))
                     .clickable(enabled = false) { },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 androidx.compose.foundation.layout.Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     CircularProgressIndicator(
                         color = Color.White,
-                        strokeWidth = 4.dp
+                        strokeWidth = 4.dp,
                     )
                     androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Processando...",
                         color = Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }
@@ -146,12 +147,13 @@ fun TelaCamera(
                 title = {
                     Text(
                         text = "Você está offline 📶",
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 },
                 text = {
                     Text(
-                        text = "Deseja salvar a foto do medicamento para processar automaticamente quando o Wi-Fi voltar?"
+                        text = "Deseja salvar a foto do medicamento para processar automaticamente " +
+                            "quando o Wi-Fi voltar?",
                     )
                 },
                 icon = {
@@ -159,7 +161,7 @@ fun TelaCamera(
                         imageVector = Icons.Default.CloudOff,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
                     )
                 },
                 confirmButton = {
@@ -167,7 +169,7 @@ fun TelaCamera(
                         onClick = {
                             showOfflineDialog = false
                             viewModel.processOfflinePhoto()
-                        }
+                        },
                     ) {
                         Text("Salvar para depois", color = MaterialTheme.colorScheme.primary)
                     }
@@ -176,10 +178,8 @@ fun TelaCamera(
                     TextButton(onClick = { showOfflineDialog = false }) {
                         Text("Cancelar")
                     }
-                }
+                },
             )
         }
-
-
     }
 }

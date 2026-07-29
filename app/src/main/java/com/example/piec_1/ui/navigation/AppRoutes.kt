@@ -13,15 +13,11 @@ object AppRoutes {
     const val CAMERA_FROM_NOTIFICATION = "TelaCamera/{medicamentoId}/{horario}"
     const val DOSE_HORARIO = "TelaDoseHorario/{medicamentoId}/{data}/{horario}"
 
-    fun cameraDeepLink(medicamentoId: Long, horario: String): String {
-        return "app://telaCamera/$medicamentoId/$horario"
-    }
+    fun cameraDeepLink(medicamentoId: Long, horario: String): String = "app://telaCamera/$medicamentoId/$horario"
 
-    fun doseHorario(medicamentoId: Long, data: String, horario: String): String {
-        return "TelaDoseHorario/$medicamentoId/${Uri.encode(data)}/${Uri.encode(horario)}"
-    }
+    fun doseHorario(medicamentoId: Long, data: String, horario: String): String =
+        "TelaDoseHorario/$medicamentoId/${Uri.encode(data)}/${Uri.encode(horario)}"
 
-    fun doseHorarioDeepLink(medicamentoId: Long, data: String, horario: String): String {
-        return "app://telaDose/$medicamentoId/${Uri.encode(data)}/${Uri.encode(horario)}"
-    }
+    fun doseHorarioDeepLink(medicamentoId: Long, data: String, horario: String): String =
+        "app://telaDose/$medicamentoId/${Uri.encode(data)}/${Uri.encode(horario)}"
 }

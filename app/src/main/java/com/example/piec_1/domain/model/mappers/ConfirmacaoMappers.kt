@@ -10,7 +10,7 @@ fun ConfirmacaoEntity.toDomain() = ConfirmacaoDomain(
     data = data,
     foiTomado = foiTomado,
     observacao = observacao,
-    sincronizado = sincronizado
+    sincronizado = sincronizado,
 )
 
 fun ConfirmacaoDomain.toEntity() = ConfirmacaoEntity(
@@ -20,5 +20,5 @@ fun ConfirmacaoDomain.toEntity() = ConfirmacaoEntity(
     data = data,
     foiTomado = foiTomado,
     observacao = observacao,
-    sincronizado = sincronizado
+    sincronizado = sincronizado,
 )

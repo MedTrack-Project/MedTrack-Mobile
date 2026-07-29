@@ -21,8 +21,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import java.io.File
 
-class ScanUpload(appContext: Context, workerParams: WorkerParameters) :
-    CoroutineWorker(appContext, workerParams) {
+class ScanUpload(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
         private const val TAG = "ScanUpload"
@@ -32,7 +31,7 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) :
     private val repository: ScanRepository by lazy {
         EntryPointAccessors.fromApplication(
             applicationContext,
-            ScanUploadEntryPoint::class.java
+            ScanUploadEntryPoint::class.java,
         ).scanRepository()
     }
 
@@ -83,7 +82,7 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) :
         val channel = NotificationChannel(
             channelId,
             "Scans Offline",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_HIGH,
         )
         notificationManager.createNotificationChannel(channel)
 
@@ -99,7 +98,7 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) :
             applicationContext,
             System.currentTimeMillis().toInt(),
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)
@@ -117,8 +116,8 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) :
                         Validade: ${medicamento.validade?.ifBlank { "N/A" } ?: "N/A"}
                         
                         Clique para confirmar ou editar as informacoes
-                        """.trimIndent()
-                    )
+                        """.trimIndent(),
+                    ),
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)

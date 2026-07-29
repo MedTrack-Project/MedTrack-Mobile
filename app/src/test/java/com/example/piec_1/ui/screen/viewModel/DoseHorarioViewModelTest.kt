@@ -11,14 +11,14 @@ import com.example.piec_1.domain.model.MedicamentoCapturadoDomain
 import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.usecase.doseKey
 import com.example.piec_1.testing.MainDispatcherRule
+import java.time.LocalDate
+import java.time.LocalTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-import java.time.LocalTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DoseHorarioViewModelTest {
@@ -34,14 +34,16 @@ class DoseHorarioViewModelTest {
         val medicamento = medicamento()
         val repository = FakeMedicamentoRepository(
             medicamentoLocal = medicamento,
-            dosesConfirmadas = setOf(doseKey(medicamento.id, LocalDate.parse("2026-05-25"), "08:00"))
+            dosesConfirmadas = setOf(
+                doseKey(medicamento.id, LocalDate.parse("2026-05-25"), "08:00"),
+            ),
         )
         val viewModel = DoseHorarioViewModel(repository)
 
         viewModel.carregarDose(
             medicamentoId = medicamento.id,
             data = "2026-05-25",
-            horario = "08:00"
+            horario = "08:00",
         )
 
         val state = viewModel.uiState.value
@@ -58,30 +60,30 @@ class DoseHorarioViewModelTest {
         viewModel.carregarDose(
             medicamentoId = 999,
             data = "2026-05-25",
-            horario = "08:00"
+            horario = "08:00",
         )
 
         assertEquals(
             DoseHorarioUiState.Error("Medicamento nao encontrado."),
-            viewModel.uiState.value
+            viewModel.uiState.value,
         )
     }
 
     @Test
     fun `carregarDose emits repository error message when loading fails`() = runTest {
         val viewModel = DoseHorarioViewModel(
-            FakeMedicamentoRepository(error = RuntimeException("falha ao carregar local"))
+            FakeMedicamentoRepository(error = RuntimeException("falha ao carregar local")),
         )
 
         viewModel.carregarDose(
             medicamentoId = 1,
             data = "2026-05-25",
-            horario = "08:00"
+            horario = "08:00",
         )
 
         assertEquals(
             DoseHorarioUiState.Error("falha ao carregar local"),
-            viewModel.uiState.value
+            viewModel.uiState.value,
         )
     }
 
@@ -98,15 +100,15 @@ class DoseHorarioViewModelTest {
             intervaloHoras = null,
             primeiroHorario = null,
             dataInicio = LocalDate.parse("2026-05-01"),
-            dataTermino = null
-        )
+            dataTermino = null,
+        ),
     )
 }
 
 private class FakeMedicamentoRepository(
     private val medicamentoLocal: MedicamentoDomain? = null,
     private val dosesConfirmadas: Set<String> = emptySet(),
-    private val error: Exception? = null
+    private val error: Exception? = null,
 ) : MedicamentoRepositoryContract {
 
     override suspend fun sincronizarDadosDoUsuario(token: String): LoginData {
@@ -125,7 +127,7 @@ private class FakeMedicamentoRepository(
         comprovanteImagemUri: Uri?,
         medicamentoSelecionadoId: Long?,
         dataSelecionada: String?,
-        horarioSelecionado: String?
+        horarioSelecionado: String?,
     ) {
         error("Nao usado neste teste")
     }

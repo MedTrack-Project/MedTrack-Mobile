@@ -2,7 +2,6 @@ package com.example.piec_1.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-
 val LightPrimary = Color(0xFF08B6D4)
 val LightSecondary = Color(0xFF5BC7D7)
 val LightBackground = Color(0xFFDEFEFE)

@@ -1,7 +1,7 @@
 package com.example.piec_1.di
 
-import com.example.piec_1.data.repository.MedicamentoRepositoryContract
 import com.example.piec_1.data.repository.MedicamentoRepository
+import com.example.piec_1.data.repository.MedicamentoRepositoryContract
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,7 +14,5 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindMedicamentoRepositoryContract(
-        repository: MedicamentoRepository
-    ): MedicamentoRepositoryContract
+    abstract fun bindMedicamentoRepositoryContract(repository: MedicamentoRepository): MedicamentoRepositoryContract
 }

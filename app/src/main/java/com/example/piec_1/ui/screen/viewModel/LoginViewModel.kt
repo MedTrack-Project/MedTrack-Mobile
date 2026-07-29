@@ -11,13 +11,13 @@ import com.example.piec_1.data.repository.MedicamentoRepositoryContract
 import com.example.piec_1.domain.model.MedicamentoDomain
 import com.example.piec_1.domain.model.Usuario
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val medicamentoRepository: MedicamentoRepositoryContract
+    private val medicamentoRepository: MedicamentoRepositoryContract,
 ) : ViewModel() {
 
     private val _loginResponse = MutableLiveData<String>()

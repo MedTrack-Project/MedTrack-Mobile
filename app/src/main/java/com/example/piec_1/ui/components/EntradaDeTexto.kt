@@ -21,7 +21,7 @@ fun EntradaDeTexto(
     text: String,
     onTextChange: (String) -> Unit,
     isPassword: Boolean = false,
-    isError: Boolean = false
+    isError: Boolean = false,
 ) {
     OutlinedTextField(
         value = text,
@@ -33,8 +33,11 @@ fun EntradaDeTexto(
         shape = RoundedCornerShape(12.dp),
         singleLine = true,
         isError = isError,
-        visualTransformation = if (isPassword) PasswordVisualTransformation()
-        else VisualTransformation.None,
+        visualTransformation = if (isPassword) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -42,7 +45,7 @@ fun EntradaDeTexto(
             unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
             errorBorderColor = MaterialTheme.colorScheme.error,
             focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-        )
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        ),
     )
 }

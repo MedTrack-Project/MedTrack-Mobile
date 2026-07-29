@@ -5,4 +5,20 @@ plugins {
     alias(libs.plugins.devtools.ksp) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.kover) apply false
+    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.detekt) apply false
+}
+
+tasks.register("qualityCheck") {
+    group = "verification"
+    description = "Executa format check, análise estática, lint, testes e cobertura do app."
+    dependsOn(
+        ":app:ktlintCheck",
+        ":app:detekt",
+        ":app:lintDebug",
+        ":app:testDebugUnitTest",
+        ":app:koverVerifyDebug",
+        ":app:koverXmlReportDebug",
+        ":app:koverHtmlReportDebug",
+    )
 }

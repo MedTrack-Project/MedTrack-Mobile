@@ -8,5 +8,5 @@ data class ScanQueueItem(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val imagePath: String,
     val status: String = "PENDENTE",
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
 )

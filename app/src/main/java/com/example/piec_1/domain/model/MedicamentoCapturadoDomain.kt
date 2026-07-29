@@ -5,5 +5,5 @@ data class MedicamentoCapturadoDomain(
     val compostoAtivo: String,
     val dosagem: String,
     val quantidade: String,
-    val validade: String?
+    val validade: String?,
 )

@@ -38,10 +38,7 @@ import com.example.piec_1.R
 import com.example.piec_1.ui.components.EntradaDeTexto
 
 @Composable
-fun TelaEsqueciSenha(
-    onEmailSent: () -> Unit,
-    onBackToLogin: () -> Unit
-) {
+fun TelaEsqueciSenha(onEmailSent: () -> Unit, onBackToLogin: () -> Unit) {
     val email = remember { mutableStateOf("") }
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
@@ -52,36 +49,36 @@ fun TelaEsqueciSenha(
                 Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary
-                    )
-                )
+                        MaterialTheme.colorScheme.secondary,
+                    ),
+                ),
             ),
-        contentAlignment = Alignment.BottomCenter
+        contentAlignment = Alignment.BottomCenter,
     ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.85f),
             color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(24.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(rememberScrollState()),
             ) {
                 Box(
                     modifier = Modifier
                         .size(60.dp)
                         .background(MaterialTheme.colorScheme.primary, CircleShape)
                         .padding(12.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.medtrack_white_icon),
                         contentDescription = null,
-                        tint = Color.White
+                        tint = Color.White,
                     )
                 }
 
@@ -91,8 +88,8 @@ fun TelaEsqueciSenha(
                     text = "Recuperar Acesso",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 32.sp,
-                        textAlign = TextAlign.Center
-                    )
+                        textAlign = TextAlign.Center,
+                    ),
                 )
 
                 Text(
@@ -100,7 +97,7 @@ fun TelaEsqueciSenha(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+                    modifier = Modifier.padding(top = 8.dp, bottom = 32.dp),
                 )
 
                 EntradaDeTexto(
@@ -110,7 +107,7 @@ fun TelaEsqueciSenha(
                         email.value = it
                         errorMessage.value = null
                     },
-                    isError = errorMessage.value != null
+                    isError = errorMessage.value != null,
                 )
 
                 errorMessage.value?.let {
@@ -118,7 +115,7 @@ fun TelaEsqueciSenha(
                         text = it,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(top = 8.dp).align(Alignment.Start)
+                        modifier = Modifier.padding(top = 8.dp).align(Alignment.Start),
                     )
                 }
 
@@ -134,22 +131,22 @@ fun TelaEsqueciSenha(
                     },
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.primary,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(56.dp),
                 ) {
                     Text("Enviar e-mail", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
 
                 TextButton(
                     onClick = onBackToLogin,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
                 ) {
                     Text(
                         text = "Voltar ao login",
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }

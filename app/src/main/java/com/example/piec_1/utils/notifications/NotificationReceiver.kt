@@ -12,10 +12,10 @@ import com.example.piec_1.MainActivity
 import com.example.piec_1.R
 import com.example.piec_1.ui.navigation.AppRoutes
 import com.example.piec_1.utils.formatarHorario
+import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -28,7 +28,11 @@ class NotificationReceiver : BroadcastReceiver() {
         val imagemUrl = intent.getStringExtra("imagemUrl")
         val dataAgendamento = intent.getStringExtra("dataAgendamento") ?: LocalDate.now().toString()
 
-        if (medicamentoId == -1L || nome == null || horarioOriginal == null || compostoAtivo == null) {
+        if (medicamentoId == -1L ||
+            nome == null ||
+            horarioOriginal == null ||
+            compostoAtivo == null
+        ) {
             pendingResult.finish()
             return
         }
@@ -49,7 +53,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     data = AppRoutes.doseHorarioDeepLink(
                         medicamentoId = medicamentoId,
                         data = dataAgendamento,
-                        horario = horario
+                        horario = horario,
                     ).toUri()
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
@@ -58,7 +62,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     context,
                     medicamentoId.toInt(),
                     deepLinkIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
 
                 val bigTextStyle = NotificationCompat.BigTextStyle()
@@ -83,7 +87,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     .let { notification ->
                         context.getSystemService(NotificationManager::class.java).notify(
                             notificationId.takeIf { it > 0 }?.toInt() ?: medicamentoId.toInt(),
-                            notification
+                            notification,
                         )
                     }
             } finally {

@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,7 +54,7 @@ fun TelaDoseHorario(
     horario: String,
     onBackClick: () -> Unit,
     onScanClick: () -> Unit,
-    viewModel: DoseHorarioViewModel = hiltViewModel()
+    viewModel: DoseHorarioViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.observeAsState(DoseHorarioUiState.Loading)
 
@@ -68,20 +67,20 @@ fun TelaDoseHorario(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-                )
-            )
+                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary),
+                ),
+            ),
     ) {
         IconButton(
             onClick = onBackClick,
             modifier = Modifier
                 .padding(top = 40.dp, start = 16.dp)
-                .background(Color.White.copy(alpha = 0.18f), CircleShape)
+                .background(Color.White.copy(alpha = 0.18f), CircleShape),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Voltar",
-                tint = Color.White
+                tint = Color.White,
             )
         }
 
@@ -91,7 +90,7 @@ fun TelaDoseHorario(
                 .fillMaxHeight(0.88f)
                 .align(Alignment.BottomCenter),
             color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         ) {
             when (val state = uiState) {
                 DoseHorarioUiState.Loading -> LoadingDose()
@@ -100,7 +99,7 @@ fun TelaDoseHorario(
                     medicamento = state.medicamento,
                     horario = horario,
                     status = state.status,
-                    onScanClick = onScanClick
+                    onScanClick = onScanClick,
                 )
             }
         }
@@ -120,23 +119,18 @@ private fun ErrorDose(message: String) {
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = message,
             color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
 
 @Composable
-private fun DoseContent(
-    medicamento: MedicamentoDomain,
-    horario: String,
-    status: DoseStatus,
-    onScanClick: () -> Unit
-) {
+private fun DoseContent(medicamento: MedicamentoDomain, horario: String, status: DoseStatus, onScanClick: () -> Unit) {
     val scanEnabled = status != DoseStatus.FUTURE && status != DoseStatus.CONFIRMED
     val statusColor = when (status) {
         DoseStatus.LATE -> MaterialTheme.colorScheme.error
@@ -151,55 +145,55 @@ private fun DoseContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         Text(
             text = "Dose das ${formatarHorario(horario)}",
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         MedicamentoImage(
             imagemUrl = medicamento.imagemUrl,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(220.dp),
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = nomeExibicao(medicamento),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             Text(
                 text = medicamento.compostoAtivo,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = statusColor.copy(alpha = 0.12f),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(
                         text = "Dosagem",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                     )
                     Text(
                         text = medicamento.dosagem,
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
@@ -207,12 +201,12 @@ private fun DoseContent(
                     Text(
                         text = "Horario",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                     )
                     Text(
                         text = formatarHorario(horario),
                         style = MaterialTheme.typography.titleMedium,
-                        color = statusColor
+                        color = statusColor,
                     )
                 }
             }
@@ -221,12 +215,12 @@ private fun DoseContent(
         Text(
             text = statusMessage(status),
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            color = statusColor
+            color = statusColor,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (status != DoseStatus.CONFIRMED){
+        if (status != DoseStatus.CONFIRMED) {
             Button(
                 onClick = onScanClick,
                 shape = RoundedCornerShape(16.dp),
@@ -242,13 +236,13 @@ private fun DoseContent(
                         MaterialTheme.colorScheme.primary
                     },
                     disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_camera),
                     contentDescription = "Abrir Câmera",
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(40.dp),
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Escanear Medicamento", style = MaterialTheme.typography.titleMedium)
@@ -257,23 +251,19 @@ private fun DoseContent(
     }
 }
 
-private fun statusMessage(status: DoseStatus): String {
-    return when (status) {
-        DoseStatus.FUTURE -> "Esta dose ainda não foi liberada."
-        DoseStatus.AVAILABLE -> "Dose liberada para confirmação."
-        DoseStatus.LATE -> "Dose atrasada. Confirme nos próximos minutos."
-        DoseStatus.CONFIRMED -> "Esta dose já foi confirmada."
-        DoseStatus.EXPIRED -> "Dose em atraso, mas ainda é possivel confirmar."
-    }
+private fun statusMessage(status: DoseStatus): String = when (status) {
+    DoseStatus.FUTURE -> "Esta dose ainda não foi liberada."
+    DoseStatus.AVAILABLE -> "Dose liberada para confirmação."
+    DoseStatus.LATE -> "Dose atrasada. Confirme nos próximos minutos."
+    DoseStatus.CONFIRMED -> "Esta dose já foi confirmada."
+    DoseStatus.EXPIRED -> "Dose em atraso, mas ainda é possivel confirmar."
 }
 
-private fun nomeExibicao(medicamento: MedicamentoDomain): String {
-    return if (
-        medicamento.nome.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
-        medicamento.nome.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
-    ) {
-        medicamento.compostoAtivo
-    } else {
-        medicamento.nome
-    }
+private fun nomeExibicao(medicamento: MedicamentoDomain): String = if (
+    medicamento.nome.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
+    medicamento.nome.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
+) {
+    medicamento.compostoAtivo
+} else {
+    medicamento.nome
 }

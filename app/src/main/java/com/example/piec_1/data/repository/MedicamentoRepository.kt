@@ -23,12 +23,6 @@ import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import com.example.piec_1.utils.notifications.NotificationScheduler
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -36,6 +30,12 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @Singleton
 class MedicamentoRepository @Inject constructor(
@@ -43,7 +43,7 @@ class MedicamentoRepository @Inject constructor(
     private val apiService: ApiService,
     database: AppDatabase,
     private val authRepository: AuthRepository,
-    private val notificationScheduler: NotificationScheduler
+    private val notificationScheduler: NotificationScheduler,
 ) : MedicamentoRepositoryContract {
     private val usuarioDao = database.usuarioDao()
     private val medicamentoV2Dao = database.medicamentoV2Dao()
@@ -62,7 +62,7 @@ class MedicamentoRepository @Inject constructor(
         LoginData(
             token = token,
             usuario = usuario,
-            medicamentos = medicamentos
+            medicamentos = medicamentos,
         )
     }
 
@@ -77,7 +77,7 @@ class MedicamentoRepository @Inject constructor(
                 doseKey(
                     medicamentoId = confirmacao.medicamentoId,
                     date = LocalDate.parse(confirmacao.data),
-                    horario = confirmacao.horario.take(5)
+                    horario = confirmacao.horario.take(5),
                 )
             }.toSet()
     }
@@ -87,7 +87,7 @@ class MedicamentoRepository @Inject constructor(
         comprovanteImagemUri: Uri?,
         medicamentoSelecionadoId: Long?,
         dataSelecionada: String?,
-        horarioSelecionado: String?
+        horarioSelecionado: String?,
     ) = withContext(Dispatchers.IO) {
         val token = authRepository.getToken() ?: throw TokenNaoEncontradoException()
         val medicamentoCorrespondente = medicamentoSelecionadoId
@@ -100,7 +100,7 @@ class MedicamentoRepository @Inject constructor(
             token = token,
             comprovanteImagemUri = comprovanteImagemUri,
             dataSelecionada = dataSelecionada,
-            horarioSelecionado = horarioSelecionado
+            horarioSelecionado = horarioSelecionado,
         )
     }
 
@@ -125,53 +125,55 @@ class MedicamentoRepository @Inject constructor(
     }
 
     private suspend fun encontrarMedicamentoCorrespondente(
-        medicamentoCapturado: MedicamentoCapturadoDomain
-    ): MedicamentoDomain? {
-        return medicamentoV2Dao.getAll()
-            .map { it.toDomain() }
-            .mapNotNull { medicamentoSalvo ->
-                if (
-                    MedicationTextMatcher.isMedicationMatch(
+        medicamentoCapturado: MedicamentoCapturadoDomain,
+    ): MedicamentoDomain? = medicamentoV2Dao.getAll()
+        .map { it.toDomain() }
+        .mapNotNull { medicamentoSalvo ->
+            if (
+                MedicationTextMatcher.isMedicationMatch(
+                    savedName = medicamentoSalvo.nome,
+                    capturedName = medicamentoCapturado.nome,
+                    savedActiveIngredient = medicamentoSalvo.compostoAtivo,
+                    capturedActiveIngredient = medicamentoCapturado.compostoAtivo,
+                )
+            ) {
+                MedicamentoMatch(
+                    medicamento = medicamentoSalvo,
+                    score = MedicationTextMatcher.medicationScore(
                         savedName = medicamentoSalvo.nome,
                         capturedName = medicamentoCapturado.nome,
                         savedActiveIngredient = medicamentoSalvo.compostoAtivo,
-                        capturedActiveIngredient = medicamentoCapturado.compostoAtivo
-                    )
-                ) {
-                    MedicamentoMatch(
-                        medicamento = medicamentoSalvo,
-                        score = MedicationTextMatcher.medicationScore(
-                            savedName = medicamentoSalvo.nome,
-                            capturedName = medicamentoCapturado.nome,
-                            savedActiveIngredient = medicamentoSalvo.compostoAtivo,
-                            capturedActiveIngredient = medicamentoCapturado.compostoAtivo
-                        )
-                    )
-                } else {
-                    null
-                }
+                        capturedActiveIngredient = medicamentoCapturado.compostoAtivo,
+                    ),
+                )
+            } else {
+                null
             }
-            .maxByOrNull { it.score }
-            ?.medicamento
-    }
+        }
+        .maxByOrNull { it.score }
+        ?.medicamento
 
     private suspend fun processarConfirmacao(
         medicamento: MedicamentoDomain,
         token: String,
         comprovanteImagemUri: Uri?,
         dataSelecionada: String?,
-        horarioSelecionado: String?
+        horarioSelecionado: String?,
     ) {
         val horarioConfirmacao = horarioSelecionado
             ?.take(5)
             ?.also { validarDoseSelecionada(dataSelecionada, it) }
-            ?: encontrarHorarioMaisProximo(medicamento.frequenciaUso.horariosDoDia().map { it.toString() })
+            ?: encontrarHorarioMaisProximo(
+                medicamento.frequenciaUso.horariosDoDia().map {
+                    it.toString()
+                },
+            )
         val dataConfirmacao = dataSelecionada?.takeIf { it.isNotBlank() }
             ?: LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val confirmacaoExistente = confirmacaoDao.getConfirmacao(
             medicamentoId = medicamento.id,
             data = dataConfirmacao,
-            horario = horarioConfirmacao
+            horario = horarioConfirmacao,
         )
 
         if (confirmacaoExistente?.sincronizado == true) {
@@ -184,13 +186,13 @@ class MedicamentoRepository @Inject constructor(
             horario = horarioConfirmacao,
             data = dataConfirmacao,
             foiTomado = true,
-            observacao = null
+            observacao = null,
         )
 
         val response = apiService.confirmarMedicamento(
             token = "Bearer $token",
             dados = criarParteDados(request),
-            imagem = criarParteImagem(comprovanteImagemUri)
+            imagem = criarParteImagem(comprovanteImagemUri),
         )
 
         if (!response.isSuccessful) {
@@ -201,8 +203,8 @@ class MedicamentoRepository @Inject constructor(
             confirmacaoDao.update(
                 confirmacaoExistente.copy(
                     foiTomado = true,
-                    sincronizado = true
-                )
+                    sincronizado = true,
+                ),
             )
         } else {
             confirmacaoDao.insert(
@@ -211,8 +213,8 @@ class MedicamentoRepository @Inject constructor(
                     horario = horarioConfirmacao,
                     data = dataConfirmacao,
                     foiTomado = true,
-                    sincronizado = true
-                )
+                    sincronizado = true,
+                ),
             )
         }
     }
@@ -242,21 +244,15 @@ class MedicamentoRepository @Inject constructor(
         }
     }
 
-    private fun criarParteDados(request: ConfirmacaoRequestDto): RequestBody {
-        return gson.toJson(request).toRequestBody("application/json".toMediaType())
-    }
+    private fun criarParteDados(request: ConfirmacaoRequestDto): RequestBody =
+        gson.toJson(request).toRequestBody("application/json".toMediaType())
 
-    private fun criarParteImagem(uri: Uri?): MultipartBody.Part? {
-        return MultipartImageUtils.createJpegPart(
-            context = context,
-            uri = uri,
-            partName = "imagem",
-            filename = "confirmacao_${System.currentTimeMillis()}.jpg"
-        )
-    }
-
-    private data class MedicamentoMatch(
-        val medicamento: MedicamentoDomain,
-        val score: Double
+    private fun criarParteImagem(uri: Uri?): MultipartBody.Part? = MultipartImageUtils.createJpegPart(
+        context = context,
+        uri = uri,
+        partName = "imagem",
+        filename = "confirmacao_${System.currentTimeMillis()}.jpg",
     )
+
+    private data class MedicamentoMatch(val medicamento: MedicamentoDomain, val score: Double)
 }
