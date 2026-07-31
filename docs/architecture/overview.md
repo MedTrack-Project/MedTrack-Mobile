@@ -40,6 +40,8 @@ Tela Compose
 
 ```text
 app/src/main/java/com/example/piec_1/
+├── core/
+│   └── config/
 ├── data/
 │   ├── local/
 │   ├── remote/

@@ -14,6 +14,9 @@ app/build/outputs/apk/debug/app-debug.apk
 
 ## APK release
 
+O build de release exige `MEDTRACK_API_BASE_URL` e `MEDTRACK_SCAN_URL` em HTTPS. Consulte
+`docs/setup/build-release.md` antes de executar:
+
 ```powershell
 .\gradlew.bat :app:assembleRelease
 ```

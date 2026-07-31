@@ -22,14 +22,14 @@
 
 - Room
 - SQLite
-- SharedPreferences para token JWT
+- SharedPreferences privado para token JWT, excluido de backup; migracao para Keystore planejada
 - Gson
 
 ## Rede
 
 - Retrofit
 - OkHttp
-- HttpLoggingInterceptor
+- HttpLoggingInterceptor em nivel BASIC somente no debug
 
 ## Injecao de dependencias
 

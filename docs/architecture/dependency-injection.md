@@ -38,7 +38,7 @@ Fornece:
 - `OkHttpClient`
 - `Retrofit`
 - `ApiService`
-- `@Named("ScanUrl") String`
+- `ApiEndpoints`
 
 ## Escopos
 

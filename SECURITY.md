@@ -33,6 +33,7 @@ deve manter o pesquisador informado sobre o andamento.
 - Não registre senha, JWT, header `Authorization`, imagens ou dados de saúde em logs.
 - Não envie secrets em `BuildConfig`: valores compilados no APK podem ser extraídos.
 - Use dados sintéticos em testes, screenshots, fixtures e relatórios.
+- Execute `./gradlew checkSecrets` antes de abrir o Pull Request.
 
 Se um segredo for exposto, remova seu uso imediatamente, revogue/rotacione a credencial na origem e
 trate a limpeza do histórico como ação complementar — apagar apenas o arquivo não invalida o segredo.
