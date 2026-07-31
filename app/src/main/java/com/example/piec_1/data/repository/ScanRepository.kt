@@ -6,6 +6,7 @@ import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.piec_1.core.config.ApiEndpoints
 import com.example.piec_1.data.local.AppDatabase
 import com.example.piec_1.data.local.entity.ScanQueueItem
 import com.example.piec_1.data.remote.ApiService
@@ -17,7 +18,6 @@ import com.example.piec_1.utils.exceptions.TokenNaoEncontradoException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,7 +31,7 @@ class ScanRepository @Inject constructor(
     private val apiService: ApiService,
     database: AppDatabase,
     private val authRepository: AuthRepository,
-    @param:Named("ScanUrl") private val scanUrl: String,
+    private val endpoints: ApiEndpoints,
 ) {
     private val scanQueueDao = database.scanQueueDao()
 
@@ -89,7 +89,7 @@ class ScanRepository @Inject constructor(
     private suspend fun enviarImagemParaScan(file: File, token: String, partName: String): ScanResponseDto? {
         val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData(partName, file.name, requestFile)
-        val response = apiService.scanMedicamento(scanUrl, "Bearer $token", body)
+        val response = apiService.scanMedicamento(endpoints.scanUrl, "Bearer $token", body)
 
         return if (response.isSuccessful) response.body() else null
     }

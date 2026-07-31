@@ -99,9 +99,9 @@ class CameraViewModel @Inject constructor(
                 } else {
                     Log.e("CameraVM", "Erro na analise da IA")
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _isLoading.postValue(false)
-                Log.e("CameraVM", "Erro no processamento online: ${e.message}", e)
+                Log.e("CameraVM", "Erro no processamento online")
             }
         }
     }
@@ -112,8 +112,8 @@ class CameraViewModel @Inject constructor(
                 scanRepository.salvarScanOffline(uri)
                 _showOfflineDialog.postValue(false)
                 _isLoading.postValue(false)
-            } catch (e: Exception) {
-                Log.e("CameraVM", "Erro ao salvar scan offline: ${e.message}", e)
+            } catch (_: Exception) {
+                Log.e("CameraVM", "Erro ao salvar scan offline")
                 _isLoading.postValue(false)
             }
         }

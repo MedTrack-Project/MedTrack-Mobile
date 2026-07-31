@@ -6,7 +6,7 @@ A integracao remota usa Retrofit, OkHttp e Gson.
 
 `NetworkModule` cria:
 
-- `OkHttpClient` com `HttpLoggingInterceptor`
+- `OkHttpClient` com logging `BASIC` em debug e `NONE` em release
 - `Retrofit` com `GsonConverterFactory`
 - `ApiService`
 
@@ -45,11 +45,13 @@ As URLs podem ser configuradas por propriedades:
 - `MEDTRACK_API_BASE_URL`
 - `MEDTRACK_SCAN_URL`
 
-Essas propriedades podem estar em `local.properties` ou `gradle.properties`.
+Essas propriedades podem vir de variaveis de ambiente, Gradle properties ou `local.properties`.
+Release exige ambas em HTTPS. Debug permite HTTP somente para os hosts locais autorizados pelo
+Network Security Config.
 
 ## Cuidados
 
 - Nao expor segredos reais no repositorio.
-- Evitar log de dados sensiveis em release.
+- Nao registrar senhas, tokens, payloads, imagens ou headers de autenticacao.
 - Validar respostas nulas e erros HTTP antes de acessar `body()`.
 - Manter DTOs desacoplados dos modelos de dominio.

@@ -49,7 +49,7 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
                 val file = File(scan.imagePath.toUri().path.orEmpty())
 
                 if (!file.exists()) {
-                    Log.e(TAG, "Arquivo nao encontrado: ${scan.imagePath}")
+                    Log.e(TAG, "Arquivo de scan nao encontrado")
                     allSuccess = false
                     return@forEach
                 }
@@ -65,8 +65,8 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
                 }
             } catch (_: TokenNaoEncontradoException) {
                 return Result.failure()
-            } catch (e: Exception) {
-                Log.e(TAG, "Erro ao processar scan pendente: ${e.message}", e)
+            } catch (_: Exception) {
+                Log.e(TAG, "Erro ao processar scan pendente")
                 allSuccess = false
             }
         }
@@ -83,7 +83,9 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
             channelId,
             "Scans Offline",
             NotificationManager.IMPORTANCE_HIGH,
-        )
+        ).apply {
+            lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
+        }
         notificationManager.createNotificationChannel(channel)
 
         val medicamentoJson = Gson().toJson(medicamento)
@@ -120,6 +122,7 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
                     ),
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()

@@ -129,13 +129,15 @@ interface ApiService {
 ```bash
 git clone https://github.com/seu-usuario/medtrack-mobile.git
 ````
-> Configurar variáveis no ApiClient.kt para o endpoint do Backend:
+> Configure os endpoints em `local.properties` para desenvolvimento:
 
-```kotlin
-  class ApiClient {
-    private val BASE_URL = "http://seu-endpoint:8081"
-  }
+```properties
+MEDTRACK_API_BASE_URL=http://10.0.2.2:8081/
+MEDTRACK_SCAN_URL=http://10.0.2.2:8000/detect
 ````
+
+Builds de release exigem endpoints HTTPS fornecidos por variáveis de ambiente. Consulte
+`docs/setup/build-release.md`.
 
 ## 🌐 MedTrack: Versão Web
 
@@ -233,7 +235,6 @@ O **MedTrack Web** é a interface administrativa do sistema, desenvolvida para:
 
 Projeto acadêmico desenvolvido para a disciplina de **Projeto Interdisciplinar de Engenharia da Computação 1 (PIEC1)**  
 Universidade Federal Rural de Pernambuco — Unidade Acadêmica de Belo Jardim (UFRPE/UABJ)
-
 
 
 

@@ -77,7 +77,8 @@ Os endpoints sao expostos por `BuildConfig`:
 - `MEDTRACK_API_BASE_URL`
 - `MEDTRACK_SCAN_URL`
 
-Eles podem vir de propriedades Gradle ou de `local.properties`, com fallback definido em `app/build.gradle.kts`.
+Eles podem vir de variaveis de ambiente, propriedades Gradle ou `local.properties`. Apenas debug
+possui fallback local. Release exige configuracao explicita e HTTPS.
 
 ## Convencao de modelos
 

@@ -9,14 +9,25 @@
 
 ## Configuracao de URLs
 
-Configure as propriedades abaixo em `local.properties` ou `gradle.properties`:
+O debug usa por padrão o host do emulador Android (`10.0.2.2`). Para apontar para outro ambiente,
+configure as propriedades abaixo em `local.properties`:
 
 ```properties
-MEDTRACK_API_BASE_URL=http://seu-host:8081/
-MEDTRACK_SCAN_URL=http://seu-host:8000/detect
+MEDTRACK_API_BASE_URL=http://10.0.2.2:8081/
+MEDTRACK_SCAN_URL=http://10.0.2.2:8000/detect
 ```
 
-Se nao forem definidas, o app usa os fallbacks de `app/build.gradle.kts`.
+`MEDTRACK_API_BASE_URL` deve terminar com `/`. As propriedades tambem podem ser fornecidas por
+variaveis de ambiente ou `-P`, nessa ordem de precedencia:
+
+1. variavel de ambiente;
+2. Gradle property (`-P` ou `gradle.properties`);
+3. `local.properties`;
+4. fallback local, somente em debug.
+
+Cleartext e permitido em debug apenas para `10.0.2.2` e `localhost`. Para dispositivo fisico ou
+outro host, prefira HTTPS; ampliar a allowlist local exige alteracao explicita do Network Security
+Config de debug.
 
 ## Abrir no Android Studio
 

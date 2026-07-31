@@ -40,16 +40,15 @@ class LoginViewModel @Inject constructor(
             try {
                 val token = authRepository.login(username, password)
                 val loginData = medicamentoRepository.sincronizarDadosDoUsuario(token)
-                Log.d("Login", "Token: ${loginData.token}")
                 _usuario.postValue(loginData.usuario)
                 _medicamentos.postValue(loginData.medicamentos)
                 carregarDosesConfirmadas()
                 _loginResponse.postValue(loginData.token)
             } catch (e: LoginException) {
-                Log.e("Login", "Erro de login: ${e.message}")
+                Log.w("Login", "Falha de autenticacao")
                 _errorMessage.postValue(e.message ?: "Usuario ou senha invalidos")
-            } catch (e: Exception) {
-                Log.e("Login", "Exception: ${e.message}")
+            } catch (_: Exception) {
+                Log.e("Login", "Falha inesperada durante autenticacao")
                 _errorMessage.postValue("Erro ao tentar fazer login. Tente novamente")
             }
         }
@@ -59,8 +58,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _dosesConfirmadas.postValue(medicamentoRepository.buscarChavesDeDosesConfirmadas())
-            } catch (e: Exception) {
-                Log.e("Login", "Erro ao carregar confirmacoes: ${e.message}")
+            } catch (_: Exception) {
+                Log.e("Login", "Falha ao carregar confirmacoes")
             }
         }
     }

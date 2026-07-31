@@ -69,6 +69,7 @@ object NotificationHelper {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .build()
 
         val notificationManager = context.getSystemService(
@@ -85,7 +86,7 @@ object NotificationHelper {
         ).apply {
             description = "Notificacoes para lembrar de tomar medicamentos"
             enableVibration(true)
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
             vibrationPattern = longArrayOf(0, 200, 100, 200)
         }
 

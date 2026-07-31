@@ -1,4 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import java.net.URI
 import java.util.Properties
 
 plugins {
@@ -18,9 +19,72 @@ val localProperties = Properties().apply {
     }
 }
 
-fun projectConfig(name: String, fallback: String): String = providers.gradleProperty(name)
-    .orElse(localProperties.getProperty(name) ?: fallback)
-    .get()
+fun projectConfig(name: String): String? = providers.environmentVariable(name).orNull
+    ?.trim()
+    ?.takeIf { it.isNotBlank() }
+    ?: providers.gradleProperty(name).orNull?.trim()?.takeIf { it.isNotBlank() }
+    ?: localProperties.getProperty(name)?.trim()?.takeIf { it.isNotBlank() }
+
+fun validatedEndpoint(
+    name: String,
+    value: String,
+    allowHttp: Boolean,
+    requireTrailingSlash: Boolean,
+): String {
+    val uri = runCatching { URI(value) }
+        .getOrElse { throw GradleException("$name deve ser uma URL valida.") }
+    val allowedSchemes = if (allowHttp) setOf("http", "https") else setOf("https")
+
+    require(uri.scheme?.lowercase() in allowedSchemes) {
+        "$name deve usar ${if (allowHttp) "HTTP ou HTTPS" else "HTTPS"}."
+    }
+    require(!uri.host.isNullOrBlank()) { "$name deve conter um host valido." }
+    require(uri.scheme?.lowercase() != "http" || uri.host in setOf("10.0.2.2", "localhost")) {
+        "$name permite HTTP apenas para 10.0.2.2 ou localhost."
+    }
+    require(uri.userInfo == null) { "$name nao pode conter credenciais." }
+    require(uri.fragment == null) { "$name nao pode conter fragmento." }
+    require(!requireTrailingSlash || value.endsWith('/')) {
+        "$name deve terminar com '/'."
+    }
+
+    return value
+}
+
+fun buildConfigString(value: String): String = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+val releaseWasRequested = gradle.startParameter.taskNames.any { taskName ->
+    val normalized = taskName.lowercase()
+    normalized.contains("release") || normalized.endsWith("assemble") || normalized.endsWith("bundle") ||
+        normalized.endsWith("build")
+}
+
+val debugApiBaseUrl = validatedEndpoint(
+    name = "MEDTRACK_API_BASE_URL",
+    value = projectConfig("MEDTRACK_API_BASE_URL") ?: "http://10.0.2.2:8081/",
+    allowHttp = true,
+    requireTrailingSlash = true,
+)
+val debugScanUrl = validatedEndpoint(
+    name = "MEDTRACK_SCAN_URL",
+    value = projectConfig("MEDTRACK_SCAN_URL") ?: "http://10.0.2.2:8000/detect",
+    allowHttp = true,
+    requireTrailingSlash = false,
+)
+
+fun releaseEndpoint(name: String, requireTrailingSlash: Boolean): String {
+    val placeholder = "https://configuration-required.invalid${if (requireTrailingSlash) "/" else "/detect"}"
+    if (!releaseWasRequested) return placeholder
+
+    val configuredValue = projectConfig(name) ?: throw GradleException("$name e obrigatoria para builds de release.")
+
+    return validatedEndpoint(
+        name = name,
+        value = configuredValue,
+        allowHttp = false,
+        requireTrailingSlash = requireTrailingSlash,
+    )
+}
 
 android {
     namespace = "com.example.piec_1"
@@ -34,16 +98,24 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        val apiBaseUrl = projectConfig("MEDTRACK_API_BASE_URL", "http://192.168.1.123:8081/")
-        val scanUrl = projectConfig("MEDTRACK_SCAN_URL", "http://192.168.1.107:8000/detect")
-
-        buildConfigField("String", "MEDTRACK_API_BASE_URL", "\"$apiBaseUrl\"")
-        buildConfigField("String", "MEDTRACK_SCAN_URL", "\"$scanUrl\"")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "MEDTRACK_API_BASE_URL", buildConfigString(debugApiBaseUrl))
+            buildConfigField("String", "MEDTRACK_SCAN_URL", buildConfigString(debugScanUrl))
+        }
         release {
+            buildConfigField(
+                "String",
+                "MEDTRACK_API_BASE_URL",
+                buildConfigString(releaseEndpoint("MEDTRACK_API_BASE_URL", requireTrailingSlash = true)),
+            )
+            buildConfigField(
+                "String",
+                "MEDTRACK_SCAN_URL",
+                buildConfigString(releaseEndpoint("MEDTRACK_SCAN_URL", requireTrailingSlash = false)),
+            )
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -64,6 +136,34 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+val validateReleaseConfiguration = tasks.register("validateReleaseConfiguration") {
+    group = "verification"
+    description = "Valida endpoints HTTPS obrigatorios antes de qualquer tarefa de release."
+
+    doLast {
+        validatedEndpoint(
+            name = "MEDTRACK_API_BASE_URL",
+            value = projectConfig("MEDTRACK_API_BASE_URL")
+                ?: throw GradleException("MEDTRACK_API_BASE_URL e obrigatoria para builds de release."),
+            allowHttp = false,
+            requireTrailingSlash = true,
+        )
+        validatedEndpoint(
+            name = "MEDTRACK_SCAN_URL",
+            value = projectConfig("MEDTRACK_SCAN_URL")
+                ?: throw GradleException("MEDTRACK_SCAN_URL e obrigatoria para builds de release."),
+            allowHttp = false,
+            requireTrailingSlash = false,
+        )
+    }
+}
+
+tasks.configureEach {
+    if (name.contains("release", ignoreCase = true) && name != validateReleaseConfiguration.name) {
+        dependsOn(validateReleaseConfiguration)
     }
 }
 
@@ -183,7 +283,6 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

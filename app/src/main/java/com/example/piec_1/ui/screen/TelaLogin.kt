@@ -1,6 +1,5 @@
 package com.example.piec_1.ui.screen
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,7 +48,6 @@ fun TelaLogin(loginViewModel: LoginViewModel, onLoginSuccess: () -> Unit, onForg
     val password = remember { mutableStateOf("") }
 
     val onLoginClick = {
-        Log.d("Login", "Username: ${username.value}, Password: ${password.value}")
         loginViewModel.login(username.value, password.value)
     }
 
