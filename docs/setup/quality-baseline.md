@@ -72,8 +72,8 @@ Também confirme:
 
 ## Observações do baseline
 
-- O package/application ID legado contém underscore; a regra `package-name` do ktlint está
-  desabilitada até uma renomeação em PR próprio.
+- O namespace/application ID foi renomeado para `com.medtrack.mobile`; a regra `package-name` do
+  ktlint voltou a ser aplicada.
 - Composables usam PascalCase e o singleton Room usa `INSTANCE`, seguindo convenções Android; as
   regras de nomenclatura conflitantes do ktlint estão desabilitadas.
 - O detekt usa baseline apenas para problemas preexistentes. Código novo continua sujeito à
@@ -99,11 +99,11 @@ ViewModels, UI, workers, navegação e outras áreas relevantes estavam excluíd
 reduzidas para manter apenas código gerado/boilerplate de Android, Hilt e Dagger. Após essa correção,
 execute novamente `./gradlew qualityCheck`; o novo percentual será o primeiro baseline comparável.
 
-O baseline do detekt contém **144 ocorrências preexistentes**:
+Após a remoção dos achados resolvidos por essa renomeação, o baseline do detekt contém **51
+ocorrências preexistentes**:
 
 | Regra | Ocorrências |
 |---|---:|
-| `PackageNaming` | 93 |
 | `FunctionNaming` | 25 |
 | `LongMethod` | 11 |
 | `TooGenericExceptionCaught` | 8 |
@@ -114,9 +114,9 @@ O baseline do detekt contém **144 ocorrências preexistentes**:
 | `PrintStackTrace` | 1 |
 | `SwallowedException` | 1 |
 
-As 93 ocorrências de package decorrem principalmente do namespace legado `com.example.piec_1`.
-Nomenclatura de Composables explica parte relevante de `FunctionNaming`. Esses itens devem ser
-reduzidos por refatorações focadas; regenerar o baseline sem revisar o diff não é permitido.
+As 93 ocorrências de `PackageNaming` associadas ao namespace legado foram removidas do baseline.
+Nomenclatura de Composables explica parte relevante de `FunctionNaming`. Os achados restantes devem
+ser reduzidos por refatorações focadas; regenerar o baseline sem revisar o diff não é permitido.
 
 ### Classificação dos warnings
 

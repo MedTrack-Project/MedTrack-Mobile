@@ -36,6 +36,13 @@ Config de debug.
 3. Selecione um dispositivo/emulador.
 4. Execute o modulo `app`.
 
+## Migracao do identificador do aplicativo
+
+O namespace e o application ID atuais sao `com.medtrack.mobile`. Versoes locais anteriores usavam
+`com.example.piec_1`; por isso, o Android trata a versao renomeada como outro aplicativo. Antes de
+validar esta migracao, desinstale a versao antiga do dispositivo ou emulador. Dados locais da
+instalacao anterior nao sao migrados automaticamente.
+
 ## Comandos uteis
 
 ```powershell

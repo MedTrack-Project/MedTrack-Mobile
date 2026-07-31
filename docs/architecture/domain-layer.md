@@ -1,6 +1,6 @@
 # Camada de Dominio
 
-A camada de dominio vive em `app/src/main/java/com/example/piec_1/domain`.
+A camada de dominio vive em `app/src/main/java/com/medtrack/mobile/domain`.
 
 Ela representa o vocabulário central do aplicativo: medicamentos, usuario, frequencia de uso, dados capturados por scan e regras auxiliares.
 

@@ -87,11 +87,11 @@ fun releaseEndpoint(name: String, requireTrailingSlash: Boolean): String {
 }
 
 android {
-    namespace = "com.example.piec_1"
+    namespace = "com.medtrack.mobile"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.piec_1"
+        applicationId = "com.medtrack.mobile"
         minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 36
@@ -208,7 +208,7 @@ kover {
                     "*.R$*",
                     "*.Manifest*",
                     "*.*GeneratedInjector*",
-                    "_com_example_piec_1_*",
+                    "_com_medtrack_mobile_*",
                     "hilt_aggregated_deps.*",
                     "hilt_aggregated_deps/*",
                     "dagger.hilt.internal.aggregatedroot.codegen.*",

@@ -39,7 +39,7 @@ Tela Compose
 ## Pacotes principais
 
 ```text
-app/src/main/java/com/example/piec_1/
+app/src/main/java/com/medtrack/mobile/
 ├── core/
 │   └── config/
 ├── data/
