@@ -49,8 +49,8 @@ class DetectionService @Inject constructor() {
                     onDetectionResult(false, null)
                 }
             }
-            .addOnFailureListener { e ->
-                Log.e("DetectionService", "Erro na detecção: ${e.message}")
+            .addOnFailureListener {
+                Log.e("DetectionService", "Erro na deteccao")
                 onDetectionResult(false, null)
             }
     }

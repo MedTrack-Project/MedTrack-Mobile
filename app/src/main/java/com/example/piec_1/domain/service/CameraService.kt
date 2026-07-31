@@ -70,8 +70,8 @@ class CameraService @Inject constructor(
                     imageAnalysis,
                     imageCapture,
                 )
-            } catch (e: Exception) {
-                Log.e("CameraX", "Erro ao iniciar camera", e)
+            } catch (_: Exception) {
+                Log.e("CameraX", "Erro ao iniciar camera")
             }
         }, ContextCompat.getMainExecutor(context))
     }
@@ -89,12 +89,12 @@ class CameraService @Inject constructor(
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    Log.d("CameraService", "Foto salva com sucesso em: ${photoFile.absolutePath}")
+                    Log.d("CameraService", "Foto salva com sucesso")
                     onImageCaptured(Uri.fromFile(photoFile))
                 }
 
                 override fun onError(exception: ImageCaptureException) {
-                    Log.e("CameraService", "Erro ao salvar foto: ${exception.message}")
+                    Log.e("CameraService", "Erro ao salvar foto")
                     onImageCaptured(null)
                 }
             },

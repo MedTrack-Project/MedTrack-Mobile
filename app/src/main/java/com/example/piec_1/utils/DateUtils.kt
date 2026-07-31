@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 fun formatarHorario(horario: String): String = try {
     LocalTime.parse(horario).format(DateTimeFormatter.ofPattern("HH:mm"))
 } catch (e: Exception) {
-    Log.w("FormatarHorario", "Formato inválido: $horario")
+    Log.w("FormatarHorario", "Formato de horario invalido")
     if (horario.length >= 5) horario.substring(0, 5) else "--:--"
 }
 
