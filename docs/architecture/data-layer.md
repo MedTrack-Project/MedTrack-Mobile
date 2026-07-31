@@ -1,6 +1,6 @@
 # Camada de Dados
 
-A camada de dados vive em `app/src/main/java/com/example/piec_1/data`.
+A camada de dados vive em `app/src/main/java/com/medtrack/mobile/data`.
 
 Ela concentra persistencia local, integracao HTTP, sessao, repositories e configuracao de dependencias.
 

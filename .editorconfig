@@ -13,8 +13,6 @@ ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
 ktlint_code_style = android_studio
 max_line_length = 120
-# O package legado acompanha o applicationId atual. A renomeação exige PR próprio.
-ktlint_standard_package-name = disabled
 # Composables usam PascalCase e o singleton Room usa INSTANCE por convenção Android.
 ktlint_standard_function-naming = disabled
 ktlint_standard_property-naming = disabled

@@ -113,8 +113,8 @@ Problemas e oportunidades:
 - o código usa Gson diretamente em repository/worker, dificultando troca e testes;
 - `release` está com `isMinifyEnabled = false`, apesar de declarar regras ProGuard/R8;
 - `versionCode` e `versionName` são fixos e não há estratégia de versionamento por tag;
-- o namespace/application ID `com.example.piec_1` é provisório e inadequado para distribuição
-  definitiva; uma eventual troca precisa ser um PR próprio e planejado por seu impacto.
+- o namespace/application ID originalmente encontrado, `com.example.piec_1`, era provisório e
+  inadequado para distribuição; ele foi substituído por `com.medtrack.mobile` em um PR próprio.
 
 ### 2.3 Configuração de APIs, segurança e privacidade
 

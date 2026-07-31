@@ -1,6 +1,6 @@
 # Camada de UI
 
-A camada de UI vive em `app/src/main/java/com/example/piec_1/ui`.
+A camada de UI vive em `app/src/main/java/com/medtrack/mobile/ui`.
 
 Ela usa Jetpack Compose, ViewModel, LiveData e Navigation Compose.
 
@@ -11,7 +11,7 @@ ui/
 ├── components/
 ├── navigation/
 ├── screen/
-│   └── viewModel/
+│   └── viewmodel/
 └── theme/
 ```
 
@@ -29,7 +29,7 @@ As telas principais ficam em `ui/screen`:
 
 ## ViewModels
 
-ViewModels ficam em `ui/screen/viewModel` e sao anotadas com `@HiltViewModel`.
+ViewModels ficam em `ui/screen/viewmodel` e sao anotadas com `@HiltViewModel`.
 
 ViewModels existentes:
 
