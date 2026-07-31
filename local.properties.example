@@ -1,0 +1,4 @@
+# Copie apenas as chaves necessarias para local.properties.
+# HTTP e aceito exclusivamente para os hosts locais autorizados no build debug.
+MEDTRACK_API_BASE_URL=http://10.0.2.2:8081/
+MEDTRACK_SCAN_URL=http://10.0.2.2:8000/detect
