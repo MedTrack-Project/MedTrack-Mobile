@@ -1,12 +1,12 @@
-package com.medtrack.mobile.domain.model.mappers
+package com.medtrack.mobile.data.mapper.local
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.medtrack.mobile.data.local.entity.FrequenciaUsoEntity
 import com.medtrack.mobile.data.local.entity.MedicamentoEntity
 import com.medtrack.mobile.domain.model.FrequenciaUsoDomain
 import com.medtrack.mobile.domain.model.FrequenciaUsoTipo
 import com.medtrack.mobile.domain.model.MedicamentoDomain
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.time.LocalDate
 import java.time.LocalTime
 

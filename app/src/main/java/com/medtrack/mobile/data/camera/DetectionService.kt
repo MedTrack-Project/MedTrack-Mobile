@@ -1,4 +1,4 @@
-package com.medtrack.mobile.domain.service
+package com.medtrack.mobile.data.camera
 
 import android.graphics.Bitmap
 import android.graphics.Rect

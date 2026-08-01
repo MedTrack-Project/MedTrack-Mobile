@@ -1,4 +1,4 @@
-package com.medtrack.mobile.domain.service
+package com.medtrack.mobile.data.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,11 +10,11 @@ import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.medtrack.mobile.MainActivity
-import com.medtrack.mobile.data.repository.ScanRepository
-import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
-import com.medtrack.mobile.utils.exceptions.TokenNaoEncontradoException
 import com.google.gson.Gson
+import com.medtrack.mobile.MainActivity
+import com.medtrack.mobile.domain.error.InvalidSessionException
+import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
+import com.medtrack.mobile.domain.usecase.ProcessOfflineScanQueueUseCase
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -25,53 +25,28 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
 
     companion object {
         private const val TAG = "ScanUpload"
-        private const val STATUS_CONCLUIDO = "CONCLUIDO"
     }
 
-    private val repository: ScanRepository by lazy {
+    private val processQueue: ProcessOfflineScanQueueUseCase by lazy {
         EntryPointAccessors.fromApplication(
             applicationContext,
             ScanUploadEntryPoint::class.java,
-        ).scanRepository()
+        ).processOfflineScanQueue()
     }
 
-    override suspend fun doWork(): Result {
-        val pendingScans = repository.getPendingScans()
-
-        if (pendingScans.isEmpty()) {
-            return Result.success()
+    override suspend fun doWork(): Result = try {
+        val result = processQueue()
+        result.completed.forEach { processed ->
+            enviarNotificacaoComDados(processed.medicamento)
+            val file = File(processed.pendingScan.image.value.toUri().path.orEmpty())
+            if (!file.delete()) Log.w(TAG, "Arquivo processado nao pode ser removido")
         }
-
-        var allSuccess = true
-
-        pendingScans.forEach { scan ->
-            try {
-                val file = File(scan.imagePath.toUri().path.orEmpty())
-
-                if (!file.exists()) {
-                    Log.e(TAG, "Arquivo de scan nao encontrado")
-                    allSuccess = false
-                    return@forEach
-                }
-
-                val medicamento = repository.uploadScanPendente(file)
-
-                if (medicamento != null) {
-                    repository.updateScanStatus(scan.id, STATUS_CONCLUIDO)
-                    enviarNotificacaoComDados(medicamento)
-                    file.delete()
-                } else {
-                    allSuccess = false
-                }
-            } catch (_: TokenNaoEncontradoException) {
-                return Result.failure()
-            } catch (_: Exception) {
-                Log.e(TAG, "Erro ao processar scan pendente")
-                allSuccess = false
-            }
-        }
-
-        return if (allSuccess) Result.success() else Result.retry()
+        if (result.shouldRetry) Result.retry() else Result.success()
+    } catch (_: InvalidSessionException) {
+        Result.failure()
+    } catch (_: Exception) {
+        Log.e(TAG, "Erro ao processar fila offline")
+        Result.retry()
     }
 
     private fun enviarNotificacaoComDados(medicamento: MedicamentoCapturadoDomain) {
@@ -133,6 +108,6 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface ScanUploadEntryPoint {
-        fun scanRepository(): ScanRepository
+        fun processOfflineScanQueue(): ProcessOfflineScanQueueUseCase
     }
 }

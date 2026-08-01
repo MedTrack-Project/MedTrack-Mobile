@@ -5,18 +5,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.medtrack.mobile.data.repository.MedicamentoRepositoryContract
+import com.medtrack.mobile.domain.error.ConfirmationAlreadyExistsException
+import com.medtrack.mobile.domain.error.DoseOutsideAllowedTimeException
+import com.medtrack.mobile.domain.error.InvalidSessionException
+import com.medtrack.mobile.domain.error.MedicationNotFoundException
+import com.medtrack.mobile.domain.model.ConfirmationCommand
+import com.medtrack.mobile.domain.model.ImageReference
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
-import com.medtrack.mobile.utils.exceptions.ConfirmacaoExistenteException
-import com.medtrack.mobile.utils.exceptions.DoseForaDoHorarioException
-import com.medtrack.mobile.utils.exceptions.MedicamentoNaoEncontradoException
-import com.medtrack.mobile.utils.exceptions.TokenNaoEncontradoException
+import com.medtrack.mobile.domain.usecase.ConfirmMedicationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class MedicamentoViewModel @Inject constructor(private val medicamentoRepository: MedicamentoRepositoryContract) :
+class MedicamentoViewModel @Inject constructor(private val confirmMedicationUseCase: ConfirmMedicationUseCase) :
     ViewModel() {
 
     private val _uiState = MutableLiveData<MedicamentoUIState>(MedicamentoUIState.Idle)
@@ -29,7 +31,7 @@ class MedicamentoViewModel @Inject constructor(private val medicamentoRepository
         data class Error(val message: String) : MedicamentoUIState()
     }
 
-    fun confirmarMedicamento(
+    fun confirmMedication(
         medicamentoCapturado: MedicamentoCapturadoDomain,
         comprovanteImagemUri: Uri?,
         selectedDose: SelectedDose?,
@@ -40,33 +42,35 @@ class MedicamentoViewModel @Inject constructor(private val medicamentoRepository
             _uiState.value = MedicamentoUIState.Loading
 
             try {
-                medicamentoRepository.confirmarMedicamento(
-                    medicamentoCapturado = medicamentoCapturado,
-                    comprovanteImagemUri = comprovanteImagemUri,
-                    medicamentoSelecionadoId = selectedDose?.medicamentoId,
-                    dataSelecionada = selectedDose?.data,
-                    horarioSelecionado = selectedDose?.horario,
+                confirmMedicationUseCase(
+                    ConfirmationCommand(
+                        medicamentoCapturado = medicamentoCapturado,
+                        comprovanteImagem = comprovanteImagemUri?.toString()?.let(::ImageReference),
+                        medicamentoSelecionadoId = selectedDose?.medicamentoId,
+                        dataSelecionada = selectedDose?.data,
+                        horarioSelecionado = selectedDose?.horario,
+                    ),
                 )
                 _uiState.value = MedicamentoUIState.Success("Medicamento confirmado!")
                 onSuccess()
-            } catch (_: TokenNaoEncontradoException) {
+            } catch (_: InvalidSessionException) {
                 val message = "Sessao expirada. Faca login novamente."
                 _uiState.value = MedicamentoUIState.Error(message)
                 onError(message)
-            } catch (_: MedicamentoNaoEncontradoException) {
+            } catch (_: MedicationNotFoundException) {
                 val message = "Medicamento nao cadastrado. Cadastre-o primeiro."
                 _uiState.value = MedicamentoUIState.Error(message)
                 onError(message)
-            } catch (_: ConfirmacaoExistenteException) {
+            } catch (_: ConfirmationAlreadyExistsException) {
                 val message = "Ja existe uma confirmacao para este horario."
                 _uiState.value = MedicamentoUIState.Error(message)
                 onError(message)
-            } catch (_: DoseForaDoHorarioException) {
+            } catch (_: DoseOutsideAllowedTimeException) {
                 val message = "Esta dose so pode ser confirmada no horario correto."
                 _uiState.value = MedicamentoUIState.Error(message)
                 onError(message)
-            } catch (e: Exception) {
-                val message = "Erro ao confirmar: ${e.message ?: "Tente novamente"}"
+            } catch (_: Exception) {
+                val message = "Erro ao confirmar. Tente novamente."
                 _uiState.value = MedicamentoUIState.Error(message)
                 onError(message)
             }

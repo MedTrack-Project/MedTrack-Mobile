@@ -9,19 +9,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.medtrack.mobile.data.repository.ScanRepository
+import com.medtrack.mobile.domain.model.ImageReference
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
-import com.medtrack.mobile.domain.service.CameraService
+import com.medtrack.mobile.domain.usecase.QueueOfflineScanUseCase
+import com.medtrack.mobile.domain.usecase.ScanMedicationUseCase
+import com.medtrack.mobile.ui.camera.CameraController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.io.File
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    private val scanRepository: ScanRepository,
-    private val cameraService: CameraService,
+    private val scanMedication: ScanMedicationUseCase,
+    private val queueOfflineScan: QueueOfflineScanUseCase,
+    private val cameraService: CameraController,
 ) : ViewModel() {
 
     private val _medicamento = MutableLiveData<MedicamentoCapturadoDomain?>()
@@ -88,8 +90,7 @@ class CameraViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _capturedPhotoUri.postValue(uri)
-                val file = File(uri.path.orEmpty())
-                val medicamento = scanRepository.scanMedicamento(file)
+                val medicamento = scanMedication(ImageReference(uri.toString()))
 
                 _isLoading.postValue(false)
 
@@ -109,7 +110,7 @@ class CameraViewModel @Inject constructor(
     fun saveForLater(uri: Uri) {
         viewModelScope.launch {
             try {
-                scanRepository.salvarScanOffline(uri)
+                queueOfflineScan(ImageReference(uri.toString()))
                 _showOfflineDialog.postValue(false)
                 _isLoading.postValue(false)
             } catch (_: Exception) {

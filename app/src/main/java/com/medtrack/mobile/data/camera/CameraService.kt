@@ -1,4 +1,4 @@
-package com.medtrack.mobile.domain.service
+package com.medtrack.mobile.data.camera
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -22,6 +22,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.medtrack.mobile.ui.camera.CameraController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -31,10 +32,10 @@ import javax.inject.Inject
 class CameraService @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val detectionService: DetectionService,
-) {
+) : CameraController {
     private var imageCapture: ImageCapture? = null
 
-    fun startCamera(
+    override fun startCamera(
         previewView: PreviewView,
         lifecycleOwner: LifecycleOwner,
         onObjectDetected: (Boolean, Rect?) -> Unit,
@@ -76,7 +77,7 @@ class CameraService @Inject constructor(
         }, ContextCompat.getMainExecutor(context))
     }
 
-    fun capturePhotoOnly(onImageCaptured: (Uri?) -> Unit) {
+    override fun capturePhotoOnly(onImageCaptured: (Uri?) -> Unit) {
         val photoFile = File(
             context.filesDir,
             "scan_${System.currentTimeMillis()}.jpg",
