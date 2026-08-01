@@ -1,5 +1,6 @@
 package com.medtrack.mobile.di
 
+import com.google.gson.Gson
 import com.medtrack.mobile.BuildConfig
 import com.medtrack.mobile.core.config.ApiEndpoints
 import com.medtrack.mobile.data.remote.ApiService
@@ -17,6 +18,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson = Gson()
 
     @Provides
     @Singleton
@@ -45,7 +50,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient, endpoints: ApiEndpoints): Retrofit = Retrofit.Builder()
         .baseUrl(endpoints.apiBaseUrl)
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(GsonConverterFactory.create(provideGson()))
         .client(client)
         .build()
 

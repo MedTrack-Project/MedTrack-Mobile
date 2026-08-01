@@ -22,32 +22,38 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medtrack.mobile.R
 import com.medtrack.mobile.domain.model.MedicationItem
 import com.medtrack.mobile.ui.components.ListaHorarios
+import com.medtrack.mobile.ui.screen.viewmodel.LoginIntent
+import com.medtrack.mobile.ui.screen.viewmodel.LoginUiState
 import com.medtrack.mobile.ui.screen.viewmodel.LoginViewModel
 
 @Composable
 fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationItem) -> Unit) {
-    val usuario by loginViewModel.usuario.observeAsState()
-    val medicamentos by loginViewModel.medicamentos.observeAsState()
-    val dosesConfirmadas by loginViewModel.dosesConfirmadas.observeAsState(emptySet())
-    val isLoading = usuario == null || medicamentos == null
+    val state by loginViewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(medicamentos) {
-        if (medicamentos != null) {
-            loginViewModel.carregarDosesConfirmadas()
-        }
+    LaunchedEffect(state.hasContent) {
+        if (state.hasContent) loginViewModel.onIntent(LoginIntent.RefreshConfirmedDoses)
     }
 
-    if (isLoading) {
+    PrincipalContent(state, onHorarioClick)
+}
+
+@Composable
+fun PrincipalContent(state: LoginUiState, onHorarioClick: (MedicationItem) -> Unit) {
+    val usuario = state.usuario
+    val medicamentos = state.medicamentos
+    val dosesConfirmadas = state.dosesConfirmadas
+
+    if (state.isLoading || usuario == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
@@ -58,7 +64,7 @@ fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationIte
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Buscando dados do usuario...",
+                    text = state.errorMessage ?: "Buscando dados do usuario...",
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -121,7 +127,7 @@ fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationIte
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Ola, ${usuario?.nome ?: "Usuario"}",
+                    text = "Ola, ${usuario.nome}",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -135,11 +141,17 @@ fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationIte
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Box(modifier = Modifier.weight(1f)) {
-                    ListaHorarios(
-                        medicamentos = medicamentos ?: emptyList(),
-                        dosesConfirmadas = dosesConfirmadas,
-                        onHorarioClick = onHorarioClick,
-                    )
+                    if (medicamentos.isEmpty()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Nenhum medicamento para exibir")
+                        }
+                    } else {
+                        ListaHorarios(
+                            medicamentos = medicamentos,
+                            dosesConfirmadas = dosesConfirmadas,
+                            onHorarioClick = onHorarioClick,
+                        )
+                    }
                 }
             }
         }

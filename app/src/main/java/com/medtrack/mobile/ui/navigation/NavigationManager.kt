@@ -1,18 +1,18 @@
 package com.medtrack.mobile.ui.navigation
 
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 
 object NavigationManager {
-    private val _shouldNavigate = MutableStateFlow<MedicamentoCapturadoDomain?>(null)
-    val shouldNavigate = _shouldNavigate.asStateFlow()
+    private val eventsChannel = Channel<NavigationEvent>(Channel.BUFFERED)
+    val events = eventsChannel.receiveAsFlow()
 
-    fun setMedicamento(medicamento: MedicamentoCapturadoDomain) {
-        _shouldNavigate.value = medicamento
+    fun openConfirmation(medicamento: MedicamentoCapturadoDomain) {
+        eventsChannel.trySend(NavigationEvent.OpenConfirmation(medicamento))
     }
+}
 
-    fun reset() {
-        _shouldNavigate.value = null
-    }
+sealed interface NavigationEvent {
+    data class OpenConfirmation(val medicamento: MedicamentoCapturadoDomain) : NavigationEvent
 }

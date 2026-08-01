@@ -1,8 +1,5 @@
 package com.medtrack.mobile.ui.screen.viewmodel
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medtrack.mobile.domain.error.InvalidCredentialsException
@@ -12,6 +9,12 @@ import com.medtrack.mobile.domain.usecase.GetConfirmedDosesUseCase
 import com.medtrack.mobile.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -19,47 +22,70 @@ class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val getConfirmedDoses: GetConfirmedDosesUseCase,
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState = _uiState.asStateFlow()
 
-    private val _loginResponse = MutableLiveData<String>()
-    val loginResponse: LiveData<String> get() = _loginResponse
+    private val _events = MutableSharedFlow<LoginEvent>(extraBufferCapacity = 1)
+    val events = _events.asSharedFlow()
 
-    private val _errorMessage = MutableLiveData<String>()
-    val errorMessage: LiveData<String> get() = _errorMessage
+    private var loginJob: Job? = null
 
-    private val _usuario = MutableLiveData<Usuario>()
-    val usuario: LiveData<Usuario> get() = _usuario
+    fun onIntent(intent: LoginIntent) {
+        when (intent) {
+            is LoginIntent.Submit -> login(intent.username, intent.password)
+            LoginIntent.RefreshConfirmedDoses -> loadConfirmedDoses()
+            LoginIntent.ClearError -> _uiState.update { it.copy(errorMessage = null) }
+        }
+    }
 
-    private val _medicamentos = MutableLiveData<List<MedicamentoDomain>>()
-    val medicamentos: LiveData<List<MedicamentoDomain>> get() = _medicamentos
-
-    private val _dosesConfirmadas = MutableLiveData<Set<String>>(emptySet())
-    val dosesConfirmadas: LiveData<Set<String>> get() = _dosesConfirmadas
-
-    fun login(username: String, password: String) {
-        viewModelScope.launch {
+    private fun login(username: String, password: String) {
+        loginJob?.cancel()
+        loginJob = viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val loginData = loginUseCase(username, password)
-                _usuario.postValue(loginData.usuario)
-                _medicamentos.postValue(loginData.medicamentos)
-                carregarDosesConfirmadas()
-                _loginResponse.postValue(loginData.token)
+                val result = loginUseCase(username, password)
+                val confirmedDoses = runCatching { getConfirmedDoses() }.getOrDefault(emptySet())
+                _uiState.value = LoginUiState(
+                    usuario = result.usuario,
+                    medicamentos = result.medicamentos,
+                    dosesConfirmadas = confirmedDoses,
+                )
+                _events.emit(LoginEvent.Authenticated)
             } catch (_: InvalidCredentialsException) {
-                Log.w("Login", "Falha de autenticacao")
-                _errorMessage.postValue("Usuario ou senha invalidos")
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Usuario ou senha invalidos") }
             } catch (_: Exception) {
-                Log.e("Login", "Falha inesperada durante autenticacao")
-                _errorMessage.postValue("Erro ao tentar fazer login. Tente novamente")
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "Erro ao tentar fazer login. Tente novamente")
+                }
             }
         }
     }
 
-    fun carregarDosesConfirmadas() {
+    private fun loadConfirmedDoses() {
         viewModelScope.launch {
-            try {
-                _dosesConfirmadas.postValue(getConfirmedDoses())
-            } catch (_: Exception) {
-                Log.e("Login", "Falha ao carregar confirmacoes")
-            }
+            runCatching { getConfirmedDoses() }
+                .onSuccess { doses -> _uiState.update { it.copy(dosesConfirmadas = doses) } }
+                .onFailure { /* Mantem as confirmacoes ja apresentadas. */ }
         }
     }
+}
+
+data class LoginUiState(
+    val isLoading: Boolean = false,
+    val usuario: Usuario? = null,
+    val medicamentos: List<MedicamentoDomain> = emptyList(),
+    val dosesConfirmadas: Set<String> = emptySet(),
+    val errorMessage: String? = null,
+) {
+    val hasContent: Boolean get() = usuario != null
+}
+
+sealed interface LoginIntent {
+    data class Submit(val username: String, val password: String) : LoginIntent
+    data object RefreshConfirmedDoses : LoginIntent
+    data object ClearError : LoginIntent
+}
+
+sealed interface LoginEvent {
+    data object Authenticated : LoginEvent
 }

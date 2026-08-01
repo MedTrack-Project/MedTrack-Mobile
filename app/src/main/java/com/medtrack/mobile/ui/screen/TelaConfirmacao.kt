@@ -22,8 +22,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,11 +33,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.medtrack.mobile.domain.model.ConfirmationCommand
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.ui.components.EntradaDeTexto
 import com.medtrack.mobile.ui.components.MedTrackDialog
 import com.medtrack.mobile.ui.components.StatusCard
+import com.medtrack.mobile.ui.screen.viewmodel.CameraIntent
 import com.medtrack.mobile.ui.screen.viewmodel.CameraViewModel
+import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoEvent
+import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoIntent
+import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoUiState
 import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoViewModel
 
 @Composable
@@ -47,14 +53,22 @@ fun TelaConfirmacao(
     onConfirmSuccess: () -> Unit,
     onRetakePhoto: () -> Unit,
 ) {
-    val medicamento by cameraViewModel.medicamento.observeAsState()
-    val capturedPhotoUri by cameraViewModel.capturedPhotoUri.observeAsState()
-    val selectedDose by cameraViewModel.selectedDose.observeAsState()
+    val cameraState by cameraViewModel.uiState.collectAsStateWithLifecycle()
+    val confirmationState by medicamentoViewModel.uiState.collectAsStateWithLifecycle()
+    val medicamento = cameraState.medicamento
+    val capturedPhoto = cameraState.capturedPhoto
+    val selectedDose = cameraState.selectedDose
     var showEditDialog by remember { mutableStateOf(false) }
-    var loading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val loading = confirmationState == MedicamentoUiState.Loading
+    val errorMessage = (confirmationState as? MedicamentoUiState.Error)?.message
     val medicamentoEditavel = remember(medicamento) {
         mutableStateOf(medicamento ?: medicamentoDesconhecido)
+    }
+
+    LaunchedEffect(medicamentoViewModel) {
+        medicamentoViewModel.events.collect { event ->
+            if (event == MedicamentoEvent.Confirmed) onConfirmSuccess()
+        }
     }
 
     if (medicamento == null) {
@@ -64,7 +78,7 @@ fun TelaConfirmacao(
         return
     }
 
-    val isSuccess = verificarMedicamento(medicamento!!)
+    val isSuccess = verificarMedicamento(medicamento)
 
     Box(
         modifier = Modifier.fillMaxSize().background(
@@ -83,27 +97,23 @@ fun TelaConfirmacao(
                 modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                StatusCard(medicamento!!, isSuccess)
+                StatusCard(medicamento, isSuccess)
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 if (isSuccess) {
                     Button(
                         onClick = {
-                            loading = true
-                            errorMessage = null
-                            medicamentoViewModel.confirmMedication(
-                                medicamentoCapturado = medicamento!!,
-                                comprovanteImagemUri = capturedPhotoUri,
-                                selectedDose = selectedDose,
-                                onSuccess = {
-                                    loading = false
-                                    onConfirmSuccess()
-                                },
-                                onError = { error ->
-                                    loading = false
-                                    errorMessage = error
-                                },
+                            medicamentoViewModel.onIntent(
+                                MedicamentoIntent.Confirm(
+                                    ConfirmationCommand(
+                                        medicamentoCapturado = medicamento,
+                                        comprovanteImagem = capturedPhoto,
+                                        medicamentoSelecionadoId = selectedDose?.medicamentoId,
+                                        dataSelecionada = selectedDose?.data,
+                                        horarioSelecionado = selectedDose?.horario,
+                                    ),
+                                ),
                             )
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -153,7 +163,7 @@ fun TelaConfirmacao(
             titulo = "Editar Medicamento",
             onDismiss = { showEditDialog = false },
             onConfirm = {
-                cameraViewModel.atualizarMedicamento(medicamentoEditavel.value)
+                cameraViewModel.onIntent(CameraIntent.UpdateMedication(medicamentoEditavel.value))
                 showEditDialog = false
             },
         ) {

@@ -1,144 +1,143 @@
 package com.medtrack.mobile.ui.screen.viewmodel
 
-import android.graphics.Rect
-import android.net.Uri
-import android.util.Log
-import androidx.camera.view.PreviewView
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medtrack.mobile.domain.model.ImageReference
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.domain.usecase.QueueOfflineScanUseCase
 import com.medtrack.mobile.domain.usecase.ScanMedicationUseCase
-import com.medtrack.mobile.ui.camera.CameraController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDate
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
     private val scanMedication: ScanMedicationUseCase,
     private val queueOfflineScan: QueueOfflineScanUseCase,
-    private val cameraService: CameraController,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    private val _uiState = MutableStateFlow(CameraUiState(selectedDose = savedDose()))
+    val uiState = _uiState.asStateFlow()
 
-    private val _medicamento = MutableLiveData<MedicamentoCapturadoDomain?>()
-    val medicamento: LiveData<MedicamentoCapturadoDomain?> = _medicamento
+    private val _events = MutableSharedFlow<CameraEvent>(extraBufferCapacity = 1)
+    val events = _events.asSharedFlow()
 
-    private val _capturedPhotoUri = MutableLiveData<Uri?>()
-    val capturedPhotoUri: LiveData<Uri?> = _capturedPhotoUri
-
-    private val _selectedDose = MutableLiveData<SelectedDose?>()
-    val selectedDose: LiveData<SelectedDose?> = _selectedDose
-
-    private val _framePosition = MutableLiveData<Rect?>()
-    val framePosition: LiveData<Rect?> get() = _framePosition
-
-    private val _isRectangleDetected = MutableLiveData(false)
-    val isRectangleDetected: LiveData<Boolean> get() = _isRectangleDetected
-
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> get() = _isLoading
-
-    private val _showOfflineDialog = MutableLiveData(false)
-    val showOfflineDialog: LiveData<Boolean> get() = _showOfflineDialog
-
-    private val _navigateToConfirmation = MutableLiveData(false)
-    val navigateToConfirmation: LiveData<Boolean> get() = _navigateToConfirmation
-
-    fun startCamera(previewView: PreviewView, lifecycleOwner: LifecycleOwner) {
-        cameraService.startCamera(previewView, lifecycleOwner) { detected, detectedRect ->
-            _isRectangleDetected.postValue(detected)
-            _framePosition.postValue(detectedRect)
+    fun onIntent(intent: CameraIntent) {
+        when (intent) {
+            is CameraIntent.RequestCapture -> requestCapture(intent.isOnline)
+            is CameraIntent.PhotoCaptured -> processPhoto(intent.image, intent.offline)
+            CameraIntent.ConfirmOfflineCapture -> confirmOfflineCapture()
+            CameraIntent.CaptureFailed -> captureFailed()
+            CameraIntent.DismissOfflineDialog -> _uiState.update { it.copy(showOfflineDialog = false) }
+            is CameraIntent.SelectDose -> selectDose(intent.dose)
+            is CameraIntent.UpdateMedication -> _uiState.update { it.copy(medicamento = intent.medicamento) }
         }
     }
 
-    fun capturePhoto(isOnline: Boolean) {
+    fun openMedicationFromNotification(medicamento: MedicamentoCapturadoDomain) {
+        _uiState.update { it.copy(medicamento = medicamento) }
+        _events.tryEmit(CameraEvent.NavigateToConfirmation)
+    }
+
+    private fun requestCapture(isOnline: Boolean) {
         if (!isOnline) {
-            _showOfflineDialog.postValue(true)
+            _uiState.update { it.copy(showOfflineDialog = true) }
             return
         }
-
-        _isLoading.postValue(true)
-        cameraService.capturePhotoOnly { uri ->
-            if (uri != null) {
-                processOnlinePhoto(uri)
-            } else {
-                _isLoading.postValue(false)
-                Log.e("CameraVM", "Erro ao capturar imagem")
-            }
-        }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _events.tryEmit(CameraEvent.CapturePhoto(offline = false))
     }
 
-    fun processOfflinePhoto() {
-        _isLoading.postValue(true)
-        cameraService.capturePhotoOnly { uri ->
-            if (uri != null) {
-                saveForLater(uri)
-            } else {
-                _isLoading.postValue(false)
-                Log.e("CameraVM", "Erro ao capturar imagem offline")
-            }
-        }
+    private fun confirmOfflineCapture() {
+        _uiState.update { it.copy(isLoading = true, showOfflineDialog = false, errorMessage = null) }
+        _events.tryEmit(CameraEvent.CapturePhoto(offline = true))
     }
 
-    private fun processOnlinePhoto(uri: Uri) {
+    private fun processPhoto(image: ImageReference, offline: Boolean) {
+        _uiState.update { it.copy(isLoading = true, capturedPhoto = image, showOfflineDialog = false) }
         viewModelScope.launch {
-            try {
-                _capturedPhotoUri.postValue(uri)
-                val medicamento = scanMedication(ImageReference(uri.toString()))
-
-                _isLoading.postValue(false)
-
-                if (medicamento != null) {
-                    _medicamento.postValue(medicamento)
-                    _navigateToConfirmation.postValue(true)
-                } else {
-                    Log.e("CameraVM", "Erro na analise da IA")
-                }
-            } catch (_: Exception) {
-                _isLoading.postValue(false)
-                Log.e("CameraVM", "Erro no processamento online")
-            }
+            if (offline) queuePhoto(image) else scanPhoto(image)
         }
     }
 
-    fun saveForLater(uri: Uri) {
-        viewModelScope.launch {
-            try {
-                queueOfflineScan(ImageReference(uri.toString()))
-                _showOfflineDialog.postValue(false)
-                _isLoading.postValue(false)
-            } catch (_: Exception) {
-                Log.e("CameraVM", "Erro ao salvar scan offline")
-                _isLoading.postValue(false)
+    private suspend fun scanPhoto(image: ImageReference) {
+        try {
+            val medicamento = scanMedication(image)
+            if (medicamento == null) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Medicamento nao identificado.") }
+            } else {
+                _uiState.update { it.copy(isLoading = false, medicamento = medicamento) }
+                _events.emit(CameraEvent.NavigateToConfirmation)
             }
+        } catch (_: Exception) {
+            _uiState.update { it.copy(isLoading = false, errorMessage = "Nao foi possivel analisar a imagem.") }
         }
     }
 
-    fun dismissOfflineDialog() {
-        _showOfflineDialog.postValue(false)
+    private suspend fun queuePhoto(image: ImageReference) {
+        try {
+            queueOfflineScan(image)
+            _uiState.update { it.copy(isLoading = false, showOfflineDialog = false) }
+            _events.emit(CameraEvent.OfflineScanQueued)
+        } catch (_: Exception) {
+            _uiState.update { it.copy(isLoading = false, errorMessage = "Nao foi possivel salvar a imagem.") }
+        }
     }
 
-    fun atualizarMedicamento(novoMedicamento: MedicamentoCapturadoDomain) {
-        _medicamento.value = novoMedicamento
+    private fun captureFailed() {
+        _uiState.update { it.copy(isLoading = false, errorMessage = "Nao foi possivel capturar a imagem.") }
     }
 
-    fun selecionarDose(medicamentoId: Long, data: String, horario: String) {
-        _selectedDose.value = SelectedDose(
-            medicamentoId = medicamentoId,
-            data = data,
-            horario = horario.take(5),
-        )
+    private fun selectDose(dose: SelectedDose) {
+        savedStateHandle[KEY_MEDICATION_ID] = dose.medicamentoId
+        savedStateHandle[KEY_DATE] = dose.data
+        savedStateHandle[KEY_TIME] = dose.horario.take(5)
+        _uiState.update { it.copy(selectedDose = dose.copy(horario = dose.horario.take(5))) }
     }
 
-    fun onNavigationToConfirmationHandled() {
-        _navigateToConfirmation.value = false
+    private fun savedDose(): SelectedDose? {
+        val id = savedStateHandle.get<Long>(KEY_MEDICATION_ID) ?: return null
+        val date = savedStateHandle.get<String>(KEY_DATE) ?: return null
+        val time = savedStateHandle.get<String>(KEY_TIME) ?: return null
+        return SelectedDose(id, date, time)
+    }
+
+    private companion object {
+        const val KEY_MEDICATION_ID = "camera.medicationId"
+        const val KEY_DATE = "camera.date"
+        const val KEY_TIME = "camera.time"
     }
 }
 
-data class SelectedDose(val medicamentoId: Long, val data: String = LocalDate.now().toString(), val horario: String)
+data class CameraUiState(
+    val medicamento: MedicamentoCapturadoDomain? = null,
+    val capturedPhoto: ImageReference? = null,
+    val selectedDose: SelectedDose? = null,
+    val isLoading: Boolean = false,
+    val showOfflineDialog: Boolean = false,
+    val errorMessage: String? = null,
+)
+
+data class SelectedDose(val medicamentoId: Long, val data: String, val horario: String)
+
+sealed interface CameraIntent {
+    data class RequestCapture(val isOnline: Boolean) : CameraIntent
+    data class PhotoCaptured(val image: ImageReference, val offline: Boolean) : CameraIntent
+    data class SelectDose(val dose: SelectedDose) : CameraIntent
+    data class UpdateMedication(val medicamento: MedicamentoCapturadoDomain) : CameraIntent
+    data object CaptureFailed : CameraIntent
+    data object ConfirmOfflineCapture : CameraIntent
+    data object DismissOfflineDialog : CameraIntent
+}
+
+sealed interface CameraEvent {
+    data class CapturePhoto(val offline: Boolean) : CameraEvent
+    data object NavigateToConfirmation : CameraEvent
+    data object OfflineScanQueued : CameraEvent
+}

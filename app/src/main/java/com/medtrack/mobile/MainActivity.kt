@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -18,16 +17,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import com.google.gson.Gson
-import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
+import com.medtrack.mobile.data.navigation.PendingNavigationStore
+import com.medtrack.mobile.ui.camera.CameraController
+import com.medtrack.mobile.ui.navigation.AppIntentContract
 import com.medtrack.mobile.ui.navigation.AppNavigation
 import com.medtrack.mobile.ui.navigation.NavigationManager
 import com.medtrack.mobile.ui.theme.PIEC1Theme
 import com.medtrack.mobile.utils.notifications.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var cameraController: CameraController
+
+    @Inject lateinit var pendingNavigationStore: PendingNavigationStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +46,7 @@ class MainActivity : ComponentActivity() {
                 val isPermissionGranted = remember { mutableStateOf(false) }
 
                 if (isPermissionGranted.value) {
-                    AppNavigation()
+                    AppNavigation(cameraController)
                 } else {
                     RequestPermission { isGranted ->
                         isPermissionGranted.value = isGranted
@@ -57,25 +61,12 @@ class MainActivity : ComponentActivity() {
         processIntent(intent)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        NavigationManager.reset()
-    }
-
     private fun processIntent(intent: Intent) {
-        if (intent.action != "OPEN_CONFIRMATION") return
-
-        val medicamentoJson = intent.getStringExtra("medicamento_json") ?: return
-
-        try {
-            val medicamento = Gson().fromJson(
-                medicamentoJson,
-                MedicamentoCapturadoDomain::class.java,
-            )
-            NavigationManager.setMedicamento(medicamento)
-        } catch (_: Exception) {
-            Log.w("MainActivity", "Payload de navegacao invalido")
-        }
+        val reference = AppIntentContract.confirmationReference(
+            intent.action,
+            intent.getStringExtra(AppIntentContract.EXTRA_RESULT_REFERENCE),
+        ) ?: return
+        pendingNavigationStore.consume(reference)?.let(NavigationManager::openConfirmation)
     }
 
     private fun showNotificationPermissionWarningIfNeeded() {
