@@ -1,14 +1,14 @@
 package com.medtrack.mobile.ui.screen.viewmodel
 
-import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.medtrack.mobile.data.repository.LoginData
-import com.medtrack.mobile.data.repository.MedicamentoRepositoryContract
+import com.medtrack.mobile.domain.model.ConfirmationCommand
 import com.medtrack.mobile.domain.model.DoseStatus
 import com.medtrack.mobile.domain.model.FrequenciaUsoDomain
 import com.medtrack.mobile.domain.model.FrequenciaUsoTipo
-import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
+import com.medtrack.mobile.domain.model.LoginResult
 import com.medtrack.mobile.domain.model.MedicamentoDomain
+import com.medtrack.mobile.domain.repository.MedicationRepository
+import com.medtrack.mobile.domain.usecase.LoadDoseUseCase
 import com.medtrack.mobile.domain.usecase.doseKey
 import com.medtrack.mobile.testing.MainDispatcherRule
 import java.time.LocalDate
@@ -38,7 +38,7 @@ class DoseHorarioViewModelTest {
                 doseKey(medicamento.id, LocalDate.parse("2026-05-25"), "08:00"),
             ),
         )
-        val viewModel = DoseHorarioViewModel(repository)
+        val viewModel = DoseHorarioViewModel(LoadDoseUseCase(repository))
 
         viewModel.carregarDose(
             medicamentoId = medicamento.id,
@@ -55,7 +55,7 @@ class DoseHorarioViewModelTest {
 
     @Test
     fun `carregarDose emits error when medication is not found`() = runTest {
-        val viewModel = DoseHorarioViewModel(FakeMedicamentoRepository(medicamentoLocal = null))
+        val viewModel = DoseHorarioViewModel(LoadDoseUseCase(FakeMedicamentoRepository(medicamentoLocal = null)))
 
         viewModel.carregarDose(
             medicamentoId = 999,
@@ -72,7 +72,7 @@ class DoseHorarioViewModelTest {
     @Test
     fun `carregarDose emits repository error message when loading fails`() = runTest {
         val viewModel = DoseHorarioViewModel(
-            FakeMedicamentoRepository(error = RuntimeException("falha ao carregar local")),
+            LoadDoseUseCase(FakeMedicamentoRepository(error = RuntimeException("falha ao carregar local"))),
         )
 
         viewModel.carregarDose(
@@ -82,7 +82,7 @@ class DoseHorarioViewModelTest {
         )
 
         assertEquals(
-            DoseHorarioUiState.Error("falha ao carregar local"),
+            DoseHorarioUiState.Error("Nao foi possivel carregar a dose."),
             viewModel.uiState.value,
         )
     }
@@ -109,26 +109,20 @@ private class FakeMedicamentoRepository(
     private val medicamentoLocal: MedicamentoDomain? = null,
     private val dosesConfirmadas: Set<String> = emptySet(),
     private val error: Exception? = null,
-) : MedicamentoRepositoryContract {
+) : MedicationRepository {
 
-    override suspend fun sincronizarDadosDoUsuario(token: String): LoginData {
+    override suspend fun synchronizeUserData(token: String): LoginResult {
         error("Nao usado neste teste")
     }
 
-    override suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? {
+    override suspend fun findMedication(medicamentoId: Long): MedicamentoDomain? {
         error?.let { throw it }
         return medicamentoLocal
     }
 
-    override suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = dosesConfirmadas
+    override suspend fun confirmedDoseKeys(): Set<String> = dosesConfirmadas
 
-    override suspend fun confirmarMedicamento(
-        medicamentoCapturado: MedicamentoCapturadoDomain,
-        comprovanteImagemUri: Uri?,
-        medicamentoSelecionadoId: Long?,
-        dataSelecionada: String?,
-        horarioSelecionado: String?,
-    ) {
+    override suspend fun confirmMedication(command: ConfirmationCommand) {
         error("Nao usado neste teste")
     }
 }

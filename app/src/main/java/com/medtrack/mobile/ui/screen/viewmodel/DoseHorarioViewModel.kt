@@ -4,19 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.medtrack.mobile.data.repository.MedicamentoRepositoryContract
 import com.medtrack.mobile.domain.model.DoseStatus
 import com.medtrack.mobile.domain.model.MedicamentoDomain
-import com.medtrack.mobile.domain.usecase.resolveDoseStatus
+import com.medtrack.mobile.domain.usecase.DoseDetails
+import com.medtrack.mobile.domain.usecase.LoadDoseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDate
-import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class DoseHorarioViewModel @Inject constructor(private val medicamentoRepository: MedicamentoRepositoryContract) :
-    ViewModel() {
+class DoseHorarioViewModel @Inject constructor(private val loadDose: LoadDoseUseCase) : ViewModel() {
 
     private val _uiState = MutableLiveData<DoseHorarioUiState>(DoseHorarioUiState.Loading)
     val uiState: LiveData<DoseHorarioUiState> get() = _uiState
@@ -26,27 +23,12 @@ class DoseHorarioViewModel @Inject constructor(private val medicamentoRepository
             _uiState.value = DoseHorarioUiState.Loading
 
             try {
-                val medicamento = medicamentoRepository.buscarMedicamentoLocal(medicamentoId)
-                val confirmedDoseKeys = medicamentoRepository.buscarChavesDeDosesConfirmadas()
-                val doseDate = LocalDate.parse(data)
-                val doseTime = LocalTime.parse(horario)
-                _uiState.value = if (medicamento != null) {
-                    DoseHorarioUiState.Success(
-                        medicamento = medicamento,
-                        status = resolveDoseStatus(
-                            medicamentoId = medicamentoId,
-                            date = doseDate,
-                            horario = doseTime,
-                            confirmedDoseKeys = confirmedDoseKeys,
-                        ),
-                    )
-                } else {
-                    DoseHorarioUiState.Error("Medicamento nao encontrado.")
+                _uiState.value = when (val dose = loadDose(medicamentoId, data, horario)) {
+                    DoseDetails.NotFound -> DoseHorarioUiState.Error("Medicamento nao encontrado.")
+                    is DoseDetails.Found -> DoseHorarioUiState.Success(dose.medicamento, dose.status)
                 }
-            } catch (e: Exception) {
-                _uiState.value = DoseHorarioUiState.Error(
-                    e.message ?: "Nao foi possivel carregar a dose.",
-                )
+            } catch (_: Exception) {
+                _uiState.value = DoseHorarioUiState.Error("Nao foi possivel carregar a dose.")
             }
         }
     }

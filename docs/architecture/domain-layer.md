@@ -2,21 +2,25 @@
 
 A camada de dominio vive em `app/src/main/java/com/medtrack/mobile/domain`.
 
-Ela representa o vocabulário central do aplicativo: medicamentos, usuario, frequencia de uso, dados capturados por scan e regras auxiliares.
+Ela representa o vocabulário central do aplicativo: medicamentos, usuario, frequencia de uso, dados
+capturados por scan, contratos e regras de negocio testaveis sem Android.
 
 ## Estrutura
 
 ```text
 domain/
+├── coroutines/
+├── error/
 ├── model/
-│   ├── mappers/
 │   ├── FrequenciaUsoDomain.kt
 │   ├── FrequenciaUsoTipo.kt
 │   ├── MedicamentoCapturadoDomain.kt
 │   ├── MedicamentoDomain.kt
 │   ├── MedicamentoItem.kt
 │   └── Usuario.kt
+├── repository/
 ├── service/
+├── time/
 └── usecase/
 ```
 
@@ -29,26 +33,22 @@ domain/
 
 ## Use cases
 
-O pacote `domain/usecase` concentra funcoes de regra reaproveitavel, como ordenacao de medicamentos
-e calculo de horarios/datas.
+O pacote `domain/usecase` concentra login/sincronizacao, consulta e confirmacao de dose, scan/fila
+offline, ordenacao de medicamentos e calculo de horarios/datas.
 
 Novas regras de negocio que nao pertencem a ViewModel, Repository, DAO ou DTO devem ser candidatas
 a esse pacote.
 
-## Services
+## Contratos
 
-O pacote `domain/service` contem servicos ligados a capacidades do app:
-
-- `CameraService`: operacoes de camera e captura.
-- `DetectionService`: suporte a deteccao.
-- `ScanUpload`: Worker para processar scans offline pendentes.
-
-Embora `ScanUpload` dependa de infraestrutura Android, ele representa um fluxo de dominio: 
-transformar uma captura offline pendente em medicamento capturado e notificar o usuario.
+Interfaces de autenticacao, medicamentos, scan, fila offline, sessao e agendamento ficam no dominio.
+Relogio e dispatchers tambem sao abstraidos para tornar tempo e concorrencia deterministicos em
+testes. Implementacoes Android ficam em `data` ou em adaptadores da UI.
 
 ## Regras de separacao
 
-- Domain nao deve depender de Compose.
-- Domain nao deve conhecer DTOs diretamente fora dos mappers.
+- Domain nao deve depender de Android, Compose, Room, Retrofit, OkHttp ou `data`.
+- Domain nao conhece DTOs, entities ou mappers de infraestrutura.
 - Domain nao deve executar chamadas HTTP.
 - Validacoes e calculos reaproveitaveis devem ser movidos para use cases quando crescerem.
+- O teste `DomainBoundaryTest` aplica essa fronteira a cada PR.

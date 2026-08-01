@@ -18,12 +18,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.google.gson.Gson
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.ui.navigation.AppNavigation
 import com.medtrack.mobile.ui.navigation.NavigationManager
 import com.medtrack.mobile.ui.theme.PIEC1Theme
 import com.medtrack.mobile.utils.notifications.NotificationHelper
-import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

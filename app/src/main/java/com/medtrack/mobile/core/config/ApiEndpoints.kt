@@ -2,10 +2,7 @@ package com.medtrack.mobile.core.config
 
 import java.net.URI
 
-data class ApiEndpoints(
-    val apiBaseUrl: String,
-    val scanUrl: String,
-) {
+data class ApiEndpoints(val apiBaseUrl: String, val scanUrl: String) {
     init {
         validate(name = "apiBaseUrl", value = apiBaseUrl, requireTrailingSlash = true)
         validate(name = "scanUrl", value = scanUrl, requireTrailingSlash = false)

@@ -10,9 +10,11 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.medtrack.mobile.data.local.AppDatabase
+import com.medtrack.mobile.data.local.daos.NotificacaoDao
 import com.medtrack.mobile.data.local.entity.NotificacaoEntity
 import com.medtrack.mobile.domain.model.MedicamentoDomain
+import com.medtrack.mobile.domain.service.MedicationScheduler
+import com.medtrack.mobile.domain.time.AppClock
 import com.medtrack.mobile.domain.usecase.getDatesBetween
 import com.medtrack.mobile.domain.usecase.horariosDoDia
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,13 +29,12 @@ import javax.inject.Singleton
 @Singleton
 class NotificationScheduler @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    database: AppDatabase,
-) {
+    private val notificacaoDao: NotificacaoDao,
+    private val clock: AppClock,
+) : MedicationScheduler {
 
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    private val notificacaoDao = database.notificacaoDao()
-
-    suspend fun agendarNotificacao(medicamento: MedicamentoDomain) {
+    override suspend fun schedule(medicamento: MedicamentoDomain) {
         NotificationHelper.createNotificationChannel(context)
         notificacaoDao.deleteByMedicamentoId(medicamento.id)
 
@@ -47,11 +48,11 @@ class NotificationScheduler @Inject constructor(
             return
         }
 
-        val startDate = medicamento.frequenciaUso.dataInicio ?: LocalDate.now()
+        val startDate = medicamento.frequenciaUso.dataInicio ?: clock.localDate()
         val endDate = medicamento.frequenciaUso.dataTermino ?: startDate
 
         getDatesBetween(startDate, endDate)
-            .filter { !it.isBefore(LocalDate.now()) }
+            .filter { !it.isBefore(clock.localDate()) }
             .forEach { dataAgendamento ->
                 horarios.forEach { horario ->
                     scheduleSingleNotification(medicamento, horario, dataAgendamento)
@@ -89,7 +90,7 @@ class NotificationScheduler @Inject constructor(
             .toInstant()
             .toEpochMilli()
 
-        if (triggerAt < System.currentTimeMillis()) return
+        if (triggerAt < clock.instant().toEpochMilli()) return
 
         val notificationId = saveNotification(medicamento, horario, dataAgendamento)
         scheduleAlarm(
@@ -150,7 +151,7 @@ class NotificationScheduler @Inject constructor(
         notificationId: Long,
         triggerAt: Long,
     ) {
-        val delayMillis = (triggerAt - System.currentTimeMillis()).coerceAtLeast(0)
+        val delayMillis = (triggerAt - clock.instant().toEpochMilli()).coerceAtLeast(0)
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
@@ -199,7 +200,7 @@ class NotificationScheduler @Inject constructor(
         .build()
 
     private fun nextTriggerAt(horario: LocalTime): Long {
-        val now = LocalDateTime.now()
+        val now = clock.localDateTime()
         var dateTime = now.toLocalDate().atTime(horario)
 
         if (dateTime.isBefore(now)) {

@@ -92,7 +92,7 @@ fun TelaConfirmacao(
                         onClick = {
                             loading = true
                             errorMessage = null
-                            medicamentoViewModel.confirmarMedicamento(
+                            medicamentoViewModel.confirmMedication(
                                 medicamentoCapturado = medicamento!!,
                                 comprovanteImagemUri = capturedPhotoUri,
                                 selectedDose = selectedDose,

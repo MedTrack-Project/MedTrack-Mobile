@@ -7,19 +7,25 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.medtrack.mobile.core.config.ApiEndpoints
-import com.medtrack.mobile.data.local.AppDatabase
+import com.medtrack.mobile.data.local.daos.ScanQueueDao
 import com.medtrack.mobile.data.local.entity.ScanQueueItem
+import com.medtrack.mobile.data.mapper.remote.toCapturadoDomain
 import com.medtrack.mobile.data.remote.ApiService
 import com.medtrack.mobile.data.remote.dto.ScanResponseDto
-import com.medtrack.mobile.data.remote.mapper.toCapturadoDomain
+import com.medtrack.mobile.data.worker.ScanUpload
+import com.medtrack.mobile.domain.coroutines.DispatcherProvider
+import com.medtrack.mobile.domain.error.InvalidSessionException
+import com.medtrack.mobile.domain.error.ScanProcessingException
+import com.medtrack.mobile.domain.model.ImageReference
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
-import com.medtrack.mobile.domain.service.ScanUpload
-import com.medtrack.mobile.utils.exceptions.TokenNaoEncontradoException
+import com.medtrack.mobile.domain.model.PendingScan
+import com.medtrack.mobile.domain.repository.OfflineScanRepository
+import com.medtrack.mobile.domain.repository.SessionRepository
+import com.medtrack.mobile.domain.time.AppClock
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -29,27 +35,35 @@ import okhttp3.RequestBody.Companion.asRequestBody
 class ScanRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val apiService: ApiService,
-    database: AppDatabase,
-    private val authRepository: AuthRepository,
+    private val scanQueueDao: ScanQueueDao,
+    private val sessionRepository: SessionRepository,
     private val endpoints: ApiEndpoints,
-) {
-    private val scanQueueDao = database.scanQueueDao()
+    private val clock: AppClock,
+    private val dispatchers: DispatcherProvider,
+) : com.medtrack.mobile.domain.repository.ScanRepository,
+    OfflineScanRepository {
 
-    suspend fun scanMedicamento(file: File): MedicamentoCapturadoDomain? = withContext(Dispatchers.IO) {
-        val token = authRepository.getToken() ?: throw TokenNaoEncontradoException()
+    override suspend fun scan(image: ImageReference): MedicamentoCapturadoDomain? = withContext(dispatchers.io) {
+        val file = image.asFile()
+        val token = sessionRepository.getToken() ?: throw InvalidSessionException()
         enviarImagemParaScan(file, token, "file")?.data?.toCapturadoDomain()
     }
 
-    suspend fun getPendingScans(): List<ScanQueueItem> = withContext(Dispatchers.IO) {
-        scanQueueDao.getPendingScans()
+    override suspend fun pendingScans(): List<PendingScan> = withContext(dispatchers.io) {
+        scanQueueDao.getPendingScans().map {
+            PendingScan(id = it.id, image = ImageReference(it.imagePath))
+        }
     }
 
-    suspend fun updateScanStatus(id: Int, status: String) = withContext(Dispatchers.IO) {
-        scanQueueDao.updateStatus(id, status)
+    override suspend fun markCompleted(scanId: Int) = withContext(dispatchers.io) {
+        scanQueueDao.updateStatus(scanId, "CONCLUIDO")
     }
 
-    suspend fun uploadScanPendente(file: File): MedicamentoCapturadoDomain? = withContext(Dispatchers.IO) {
-        val token = authRepository.getToken() ?: throw TokenNaoEncontradoException()
+    override suspend fun uploadPending(scan: PendingScan): MedicamentoCapturadoDomain? =
+        uploadScanPendente(scan.image.asFile())
+
+    suspend fun uploadScanPendente(file: File): MedicamentoCapturadoDomain? = withContext(dispatchers.io) {
+        val token = sessionRepository.getToken() ?: throw InvalidSessionException()
         val partNames = listOf("file", "image", "photo")
 
         for (partName in partNames) {
@@ -62,12 +76,12 @@ class ScanRepository @Inject constructor(
         null
     }
 
-    suspend fun salvarScanOffline(uri: Uri) = withContext(Dispatchers.IO) {
+    override suspend fun enqueue(image: ImageReference) = withContext(dispatchers.io) {
         scanQueueDao.insert(
             ScanQueueItem(
-                imagePath = uri.toString(),
+                imagePath = image.value,
                 status = "PENDENTE",
-                timestamp = System.currentTimeMillis(),
+                timestamp = clock.instant().toEpochMilli(),
             ),
         )
         agendarProcessamentoDeScansOffline()
@@ -89,8 +103,12 @@ class ScanRepository @Inject constructor(
     private suspend fun enviarImagemParaScan(file: File, token: String, partName: String): ScanResponseDto? {
         val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData(partName, file.name, requestFile)
-        val response = apiService.scanMedicamento(endpoints.scanUrl, "Bearer $token", body)
+        val response = runCatching {
+            apiService.scanMedicamento(endpoints.scanUrl, "Bearer $token", body)
+        }.getOrElse { throw ScanProcessingException(it) }
 
         return if (response.isSuccessful) response.body() else null
     }
+
+    private fun ImageReference.asFile(): File = Uri.parse(value).path?.let(::File) ?: File(value)
 }

@@ -5,19 +5,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.medtrack.mobile.data.repository.AuthRepository
-import com.medtrack.mobile.data.repository.LoginException
-import com.medtrack.mobile.data.repository.MedicamentoRepositoryContract
+import com.medtrack.mobile.domain.error.InvalidCredentialsException
 import com.medtrack.mobile.domain.model.MedicamentoDomain
 import com.medtrack.mobile.domain.model.Usuario
+import com.medtrack.mobile.domain.usecase.GetConfirmedDosesUseCase
+import com.medtrack.mobile.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val medicamentoRepository: MedicamentoRepositoryContract,
+    private val loginUseCase: LoginUseCase,
+    private val getConfirmedDoses: GetConfirmedDosesUseCase,
 ) : ViewModel() {
 
     private val _loginResponse = MutableLiveData<String>()
@@ -38,15 +38,14 @@ class LoginViewModel @Inject constructor(
     fun login(username: String, password: String) {
         viewModelScope.launch {
             try {
-                val token = authRepository.login(username, password)
-                val loginData = medicamentoRepository.sincronizarDadosDoUsuario(token)
+                val loginData = loginUseCase(username, password)
                 _usuario.postValue(loginData.usuario)
                 _medicamentos.postValue(loginData.medicamentos)
                 carregarDosesConfirmadas()
                 _loginResponse.postValue(loginData.token)
-            } catch (e: LoginException) {
+            } catch (_: InvalidCredentialsException) {
                 Log.w("Login", "Falha de autenticacao")
-                _errorMessage.postValue(e.message ?: "Usuario ou senha invalidos")
+                _errorMessage.postValue("Usuario ou senha invalidos")
             } catch (_: Exception) {
                 Log.e("Login", "Falha inesperada durante autenticacao")
                 _errorMessage.postValue("Erro ao tentar fazer login. Tente novamente")
@@ -57,7 +56,7 @@ class LoginViewModel @Inject constructor(
     fun carregarDosesConfirmadas() {
         viewModelScope.launch {
             try {
-                _dosesConfirmadas.postValue(medicamentoRepository.buscarChavesDeDosesConfirmadas())
+                _dosesConfirmadas.postValue(getConfirmedDoses())
             } catch (_: Exception) {
                 Log.e("Login", "Falha ao carregar confirmacoes")
             }

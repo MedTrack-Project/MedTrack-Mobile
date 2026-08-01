@@ -25,12 +25,7 @@ fun projectConfig(name: String): String? = providers.environmentVariable(name).o
     ?: providers.gradleProperty(name).orNull?.trim()?.takeIf { it.isNotBlank() }
     ?: localProperties.getProperty(name)?.trim()?.takeIf { it.isNotBlank() }
 
-fun validatedEndpoint(
-    name: String,
-    value: String,
-    allowHttp: Boolean,
-    requireTrailingSlash: Boolean,
-): String {
+fun validatedEndpoint(name: String, value: String, allowHttp: Boolean, requireTrailingSlash: Boolean): String {
     val uri = runCatching { URI(value) }
         .getOrElse { throw GradleException("$name deve ser uma URL valida.") }
     val allowedSchemes = if (allowHttp) setOf("http", "https") else setOf("https")
@@ -55,7 +50,9 @@ fun buildConfigString(value: String): String = "\"${value.replace("\\", "\\\\").
 
 val releaseWasRequested = gradle.startParameter.taskNames.any { taskName ->
     val normalized = taskName.lowercase()
-    normalized.contains("release") || normalized.endsWith("assemble") || normalized.endsWith("bundle") ||
+    normalized.contains("release") ||
+        normalized.endsWith("assemble") ||
+        normalized.endsWith("bundle") ||
         normalized.endsWith("build")
 }
 
@@ -136,6 +133,14 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    packaging {
+        jniLibs.keepDebugSymbols += setOf(
+            "**/libandroidx.graphics.path.so",
+            "**/libimage_processing_util_jni.so",
+            "**/libmlkitcommonpipeline.so",
+            "**/libsurface_util_jni.so",
+        )
     }
 }
 
@@ -254,6 +259,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.camera.camera2.pipe)
+    debugImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)
@@ -271,6 +277,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.concurrent.futures)
+    implementation(libs.androidx.concurrent.futures.ktx)
     implementation(libs.guava)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
@@ -281,9 +289,12 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.androidx.arch.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.concurrent.futures)
+    androidTestImplementation(libs.androidx.concurrent.futures.ktx)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

@@ -12,7 +12,7 @@ ou indisponivel.
 
 ### Dados de usuario e medicamentos
 
-No login/sincronizacao, `MedicamentoRepository.sincronizarDadosDoUsuario` busca usuario e 
+No login/sincronizacao, `LoginUseCase` autentica e solicita ao `MedicationRepository` a atualizacao de
 medicamentos no backend, salva em Room e agenda notificacoes.
 
 ### Scan offline
@@ -21,7 +21,8 @@ Quando a camera detecta que o app esta offline:
 
 ```text
 CameraViewModel
-  -> ScanRepository.salvarScanOffline
+  -> QueueOfflineScanUseCase
+  -> ScanRepository.enqueue
   -> ScanQueueDao.insert
   -> WorkManager agenda ScanUpload
 ```
@@ -30,8 +31,8 @@ O item e salvo em `scan_queue` com status `PENDENTE`.
 
 ### Processamento posterior
 
-`ScanUpload` busca scans pendentes, reenvia a imagem quando o WorkManager executa o job e notifica 
-o usuario quando o medicamento e processado.
+`ScanUpload` executa `ProcessOfflineScanQueueUseCase`, que busca scans pendentes e solicita o reenvio
+quando o WorkManager executa o job. O worker notifica o usuario quando o medicamento e processado.
 
 ## Fonte de verdade
 
