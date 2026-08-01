@@ -1,16 +1,17 @@
 package com.medtrack.mobile.ui.screen.viewmodel
 
-import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.medtrack.mobile.data.repository.LoginData
-import com.medtrack.mobile.data.repository.MedicamentoRepositoryContract
+import com.medtrack.mobile.domain.error.ConfirmationAlreadyExistsException
+import com.medtrack.mobile.domain.error.DoseOutsideAllowedTimeException
+import com.medtrack.mobile.domain.error.InvalidSessionException
+import com.medtrack.mobile.domain.error.MedicationNotFoundException
+import com.medtrack.mobile.domain.model.ConfirmationCommand
+import com.medtrack.mobile.domain.model.LoginResult
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.domain.model.MedicamentoDomain
+import com.medtrack.mobile.domain.repository.MedicationRepository
+import com.medtrack.mobile.domain.usecase.ConfirmMedicationUseCase
 import com.medtrack.mobile.testing.MainDispatcherRule
-import com.medtrack.mobile.utils.exceptions.ConfirmacaoExistenteException
-import com.medtrack.mobile.utils.exceptions.DoseForaDoHorarioException
-import com.medtrack.mobile.utils.exceptions.MedicamentoNaoEncontradoException
-import com.medtrack.mobile.utils.exceptions.TokenNaoEncontradoException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -28,12 +29,12 @@ class MedicamentoViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `confirmarMedicamento emits success and invokes success callback`() = runTest {
+    fun `confirmMedication emits success and invokes success callback`() = runTest {
         var successCalled = false
         var errorMessage: String? = null
-        val viewModel = MedicamentoViewModel(ConfirmacaoFakeDataSource())
+        val viewModel = MedicamentoViewModel(ConfirmMedicationUseCase(ConfirmacaoFakeDataSource()))
 
-        viewModel.confirmarMedicamento(
+        viewModel.confirmMedication(
             medicamentoCapturado = medicamentoCapturado(),
             comprovanteImagemUri = null,
             selectedDose = SelectedDose(medicamentoId = 1, data = "2026-05-25", horario = "08:00"),
@@ -50,14 +51,14 @@ class MedicamentoViewModelTest {
     }
 
     @Test
-    fun `confirmarMedicamento emits translated error and invokes error callback`() = runTest {
+    fun `confirmMedication emits translated error and invokes error callback`() = runTest {
         var successCalled = false
         var errorMessage: String? = null
         val viewModel = MedicamentoViewModel(
-            ConfirmacaoFakeDataSource(error = RuntimeException("falha controlada")),
+            ConfirmMedicationUseCase(ConfirmacaoFakeDataSource(error = RuntimeException("falha controlada"))),
         )
 
-        viewModel.confirmarMedicamento(
+        viewModel.confirmMedication(
             medicamentoCapturado = medicamentoCapturado(),
             comprovanteImagemUri = null,
             selectedDose = SelectedDose(medicamentoId = 1, data = "2026-05-25", horario = "08:00"),
@@ -65,7 +66,7 @@ class MedicamentoViewModelTest {
             onError = { errorMessage = it },
         )
 
-        val expectedMessage = "Erro ao confirmar: falha controlada"
+        val expectedMessage = "Erro ao confirmar. Tente novamente."
         assertEquals(false, successCalled)
         assertEquals(expectedMessage, errorMessage)
         assertEquals(
@@ -75,21 +76,23 @@ class MedicamentoViewModelTest {
     }
 
     @Test
-    fun `confirmarMedicamento translates domain exceptions to user messages`() = runTest {
+    fun `confirmMedication translates domain exceptions to user messages`() = runTest {
         val cases = listOf(
-            TokenNaoEncontradoException() to "Sessao expirada. Faca login novamente.",
-            MedicamentoNaoEncontradoException() to
+            InvalidSessionException() to "Sessao expirada. Faca login novamente.",
+            MedicationNotFoundException() to
                 "Medicamento nao cadastrado. Cadastre-o primeiro.",
-            ConfirmacaoExistenteException() to "Ja existe uma confirmacao para este horario.",
-            DoseForaDoHorarioException() to "Esta dose so pode ser confirmada no horario correto.",
+            ConfirmationAlreadyExistsException() to "Ja existe uma confirmacao para este horario.",
+            DoseOutsideAllowedTimeException() to "Esta dose so pode ser confirmada no horario correto.",
         )
 
         cases.forEach { (exception, expectedMessage) ->
             var successCalled = false
             var errorMessage: String? = null
-            val viewModel = MedicamentoViewModel(ConfirmacaoFakeDataSource(error = exception))
+            val viewModel = MedicamentoViewModel(
+                ConfirmMedicationUseCase(ConfirmacaoFakeDataSource(error = exception)),
+            )
 
-            viewModel.confirmarMedicamento(
+            viewModel.confirmMedication(
                 medicamentoCapturado = medicamentoCapturado(),
                 comprovanteImagemUri = null,
                 selectedDose = SelectedDose(
@@ -119,23 +122,16 @@ class MedicamentoViewModelTest {
     )
 }
 
-private class ConfirmacaoFakeDataSource(private val error: Exception? = null) : MedicamentoRepositoryContract {
+private class ConfirmacaoFakeDataSource(private val error: Exception? = null) : MedicationRepository {
 
-    override suspend fun sincronizarDadosDoUsuario(token: String): LoginData =
+    override suspend fun synchronizeUserData(token: String): LoginResult = throw AssertionError("Nao usado neste teste")
+
+    override suspend fun findMedication(medicamentoId: Long): MedicamentoDomain? =
         throw AssertionError("Nao usado neste teste")
 
-    override suspend fun buscarMedicamentoLocal(medicamentoId: Long): MedicamentoDomain? =
-        throw AssertionError("Nao usado neste teste")
+    override suspend fun confirmedDoseKeys(): Set<String> = throw AssertionError("Nao usado neste teste")
 
-    override suspend fun buscarChavesDeDosesConfirmadas(): Set<String> = throw AssertionError("Nao usado neste teste")
-
-    override suspend fun confirmarMedicamento(
-        medicamentoCapturado: MedicamentoCapturadoDomain,
-        comprovanteImagemUri: Uri?,
-        medicamentoSelecionadoId: Long?,
-        dataSelecionada: String?,
-        horarioSelecionado: String?,
-    ) {
+    override suspend fun confirmMedication(command: ConfirmationCommand) {
         error?.let { throw it }
     }
 }

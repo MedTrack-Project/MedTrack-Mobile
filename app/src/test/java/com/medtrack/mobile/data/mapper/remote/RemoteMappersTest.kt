@@ -1,5 +1,7 @@
-package com.medtrack.mobile.data.remote.mapper
+package com.medtrack.mobile.data.mapper.remote
 
+import com.medtrack.mobile.data.mapper.remote.toCapturadoDomain
+import com.medtrack.mobile.data.mapper.remote.toDomain
 import com.medtrack.mobile.data.remote.dto.FrequenciaUsoDto
 import com.medtrack.mobile.data.remote.dto.MedicamentoScanDto
 import com.medtrack.mobile.data.remote.dto.UsuarioDto

@@ -1,10 +1,10 @@
-package com.medtrack.mobile.domain.model.mappers
+package com.medtrack.mobile.data.mapper.local
 
 import com.medtrack.mobile.data.local.entity.FrequenciaUsoEntity
 import com.medtrack.mobile.data.local.entity.MedicamentoEntity
+import com.medtrack.mobile.data.mapper.remote.toDomain
 import com.medtrack.mobile.data.remote.dto.FrequenciaUsoDto
 import com.medtrack.mobile.data.remote.dto.MedicamentoDto
-import com.medtrack.mobile.data.remote.mapper.toDomain
 import com.medtrack.mobile.domain.model.FrequenciaUsoDomain
 import com.medtrack.mobile.domain.model.FrequenciaUsoTipo
 import com.medtrack.mobile.domain.model.MedicamentoDomain

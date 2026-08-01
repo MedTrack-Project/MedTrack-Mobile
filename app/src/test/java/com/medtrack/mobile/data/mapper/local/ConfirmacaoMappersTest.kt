@@ -1,4 +1,4 @@
-package com.medtrack.mobile.domain.model.mappers
+package com.medtrack.mobile.data.mapper.local
 
 import com.medtrack.mobile.data.local.entity.ConfirmacaoEntity
 import com.medtrack.mobile.domain.model.ConfirmacaoDomain
