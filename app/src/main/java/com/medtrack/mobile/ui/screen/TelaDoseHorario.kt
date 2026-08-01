@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -39,10 +38,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medtrack.mobile.R
 import com.medtrack.mobile.domain.model.DoseStatus
 import com.medtrack.mobile.domain.model.MedicamentoDomain
 import com.medtrack.mobile.ui.components.MedicamentoImage
+import com.medtrack.mobile.ui.screen.viewmodel.DoseHorarioIntent
 import com.medtrack.mobile.ui.screen.viewmodel.DoseHorarioUiState
 import com.medtrack.mobile.ui.screen.viewmodel.DoseHorarioViewModel
 import com.medtrack.mobile.utils.formatarHorario
@@ -56,10 +57,10 @@ fun TelaDoseHorario(
     onScanClick: () -> Unit,
     viewModel: DoseHorarioViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.observeAsState(DoseHorarioUiState.Loading)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(medicamentoId, data, horario) {
-        viewModel.carregarDose(medicamentoId, data, horario)
+        viewModel.onIntent(DoseHorarioIntent.Load(medicamentoId, data, horario))
     }
 
     Box(

@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,144 +25,108 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medtrack.mobile.R
 import com.medtrack.mobile.ui.components.EntradaDeTexto
+import com.medtrack.mobile.ui.screen.viewmodel.LoginEvent
+import com.medtrack.mobile.ui.screen.viewmodel.LoginIntent
+import com.medtrack.mobile.ui.screen.viewmodel.LoginUiState
 import com.medtrack.mobile.ui.screen.viewmodel.LoginViewModel
 
 @Composable
 fun TelaLogin(loginViewModel: LoginViewModel, onLoginSuccess: () -> Unit, onForgotPasswordClick: () -> Unit) {
-    val loginResponse = loginViewModel.loginResponse.observeAsState().value
-    val errorMessage = loginViewModel.errorMessage.observeAsState().value
-
-    val username = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-
-    val onLoginClick = {
-        loginViewModel.login(username.value, password.value)
-    }
-
-    val isError = errorMessage != null
-
-    LaunchedEffect(loginResponse) {
-        if (loginResponse != null) {
-            onLoginSuccess()
+    val state by loginViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(loginViewModel) {
+        loginViewModel.events.collect { event ->
+            if (event == LoginEvent.Authenticated) onLoginSuccess()
         }
     }
+    LoginContent(state, loginViewModel::onIntent, onForgotPasswordClick)
+}
+
+@Composable
+fun LoginContent(state: LoginUiState, onIntent: (LoginIntent) -> Unit, onForgotPasswordClick: () -> Unit) {
+    var username by rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
+    var password by rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
+    val isError = state.errorMessage != null
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary,
-                    ),
-                ),
-            ),
+        modifier = Modifier.fillMaxSize().background(
+            Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)),
+        ),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.85f),
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .padding(24.dp)
-                    .verticalScroll(rememberScrollState()),
+                modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        .padding(12.dp),
+                    modifier = Modifier.size(
+                        60.dp,
+                    ).background(MaterialTheme.colorScheme.primary, CircleShape).padding(12.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.medtrack_white_icon),
-                        contentDescription = "Ícone MedTrack",
+                        painter = painterResource(R.drawable.medtrack_white_icon),
+                        contentDescription = "MedTrack",
                         tint = Color.White,
-                        modifier = Modifier.size(50.dp),
                     )
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
+                Spacer(Modifier.height(24.dp))
                 Text(
-                    text = "Entrar",
+                    "Entrar",
                     style = MaterialTheme.typography.titleLarge.copy(fontSize = 32.sp),
+                    modifier = Modifier.semantics { heading() },
                 )
-                Text(
-                    text = "Preencha os campos abaixo.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
+                Text("Preencha os campos abaixo.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(32.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    EntradaDeTexto(
-                        label = "Usuário",
-                        text = username.value,
-                        onTextChange = { username.value = it },
-                        isError = isError,
-                    )
-                    EntradaDeTexto(
-                        label = "Senha",
-                        text = password.value,
-                        onTextChange = { password.value = it },
-                        isPassword = true,
-                        isError = isError,
-                    )
+                    EntradaDeTexto("Usuário", username, {
+                        username = it
+                        onIntent(LoginIntent.ClearError)
+                    }, isError = isError)
+                    EntradaDeTexto("Senha", password, {
+                        password = it
+                        onIntent(LoginIntent.ClearError)
+                    }, isPassword = true, isError = isError)
                 }
-
-                if (isError) {
-                    Text(
-                        text = errorMessage,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
+                state.errorMessage?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
                 }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
+                Spacer(Modifier.height(40.dp))
                 Button(
-                    onClick = { onLoginClick() },
+                    onClick = { onIntent(LoginIntent.Submit(username, password)) },
+                    enabled = !state.isLoading && username.isNotBlank() && password.isNotBlank(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                 ) {
-                    Text("Entrar", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    if (state.isLoading) {
+                        CircularProgressIndicator(Modifier.size(24.dp), color = Color.White)
+                    } else {
+                        Text("Entrar", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
                 }
-
-                TextButton(
-                    onClick = onForgotPasswordClick,
-                    modifier = Modifier.padding(top = 8.dp),
-                ) {
-                    Text(
-                        text = "Esqueceu sua senha?",
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                TextButton(onClick = onForgotPasswordClick, modifier = Modifier.padding(top = 8.dp)) {
+                    Text("Esqueceu sua senha?", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }

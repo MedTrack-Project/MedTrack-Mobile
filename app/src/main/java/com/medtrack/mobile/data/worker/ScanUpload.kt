@@ -10,11 +10,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.google.gson.Gson
 import com.medtrack.mobile.MainActivity
+import com.medtrack.mobile.data.navigation.PendingNavigationStore
 import com.medtrack.mobile.domain.error.InvalidSessionException
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.domain.usecase.ProcessOfflineScanQueueUseCase
+import com.medtrack.mobile.ui.navigation.AppIntentContract
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -32,6 +33,12 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
             applicationContext,
             ScanUploadEntryPoint::class.java,
         ).processOfflineScanQueue()
+    }
+    private val navigationStore: PendingNavigationStore by lazy {
+        EntryPointAccessors.fromApplication(
+            applicationContext,
+            ScanUploadEntryPoint::class.java,
+        ).pendingNavigationStore()
     }
 
     override suspend fun doWork(): Result = try {
@@ -63,11 +70,10 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
         }
         notificationManager.createNotificationChannel(channel)
 
-        val medicamentoJson = Gson().toJson(medicamento)
+        val reference = navigationStore.save(medicamento)
         val intent = Intent(applicationContext, MainActivity::class.java).apply {
-            action = "OPEN_CONFIRMATION"
-            putExtra("medicamento_json", medicamentoJson)
-            putExtra("navigate_to_confirmation", true)
+            action = AppIntentContract.ACTION_OPEN_CONFIRMATION
+            putExtra(AppIntentContract.EXTRA_RESULT_REFERENCE, reference)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
@@ -109,5 +115,6 @@ class ScanUpload(appContext: Context, workerParams: WorkerParameters) : Coroutin
     @InstallIn(SingletonComponent::class)
     interface ScanUploadEntryPoint {
         fun processOfflineScanQueue(): ProcessOfflineScanQueueUseCase
+        fun pendingNavigationStore(): PendingNavigationStore
     }
 }

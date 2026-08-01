@@ -43,6 +43,6 @@ O projeto ja possui separacao em `data`, `di`, `domain`, `ui` e `utils`.
 Alguns pontos ainda sao pragmaticos e podem evoluir:
 
 - DI esta em `data/di`, embora seja transversal.
-- `LiveData` e o padrao atual de estado de ViewModel.
+- `StateFlow<UiState>` imutavel e intents formam o padrao de estado dos fluxos principais.
 - Alguns services de dominio ainda dependem de infraestrutura Android, como Workers e Camera.
 - A estrategia offline existe para scan e deve ser expandida para confirmacoes.
