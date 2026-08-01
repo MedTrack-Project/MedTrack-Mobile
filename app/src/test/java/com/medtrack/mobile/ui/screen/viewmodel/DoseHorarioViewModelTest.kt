@@ -1,6 +1,7 @@
 package com.medtrack.mobile.ui.screen.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.SavedStateHandle
 import com.medtrack.mobile.domain.model.ConfirmationCommand
 import com.medtrack.mobile.domain.model.DoseStatus
 import com.medtrack.mobile.domain.model.FrequenciaUsoDomain
@@ -38,13 +39,9 @@ class DoseHorarioViewModelTest {
                 doseKey(medicamento.id, LocalDate.parse("2026-05-25"), "08:00"),
             ),
         )
-        val viewModel = DoseHorarioViewModel(LoadDoseUseCase(repository))
+        val viewModel = DoseHorarioViewModel(LoadDoseUseCase(repository), SavedStateHandle())
 
-        viewModel.carregarDose(
-            medicamentoId = medicamento.id,
-            data = "2026-05-25",
-            horario = "08:00",
-        )
+        viewModel.onIntent(DoseHorarioIntent.Load(medicamento.id, "2026-05-25", "08:00"))
 
         val state = viewModel.uiState.value
         assertTrue(state is DoseHorarioUiState.Success)
@@ -55,13 +52,12 @@ class DoseHorarioViewModelTest {
 
     @Test
     fun `carregarDose emits error when medication is not found`() = runTest {
-        val viewModel = DoseHorarioViewModel(LoadDoseUseCase(FakeMedicamentoRepository(medicamentoLocal = null)))
-
-        viewModel.carregarDose(
-            medicamentoId = 999,
-            data = "2026-05-25",
-            horario = "08:00",
+        val viewModel = DoseHorarioViewModel(
+            LoadDoseUseCase(FakeMedicamentoRepository(medicamentoLocal = null)),
+            SavedStateHandle(),
         )
+
+        viewModel.onIntent(DoseHorarioIntent.Load(999, "2026-05-25", "08:00"))
 
         assertEquals(
             DoseHorarioUiState.Error("Medicamento nao encontrado."),
@@ -73,13 +69,10 @@ class DoseHorarioViewModelTest {
     fun `carregarDose emits repository error message when loading fails`() = runTest {
         val viewModel = DoseHorarioViewModel(
             LoadDoseUseCase(FakeMedicamentoRepository(error = RuntimeException("falha ao carregar local"))),
+            SavedStateHandle(),
         )
 
-        viewModel.carregarDose(
-            medicamentoId = 1,
-            data = "2026-05-25",
-            horario = "08:00",
-        )
+        viewModel.onIntent(DoseHorarioIntent.Load(1, "2026-05-25", "08:00"))
 
         assertEquals(
             DoseHorarioUiState.Error("Nao foi possivel carregar a dose."),
