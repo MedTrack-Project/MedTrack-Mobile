@@ -2,7 +2,7 @@
 
 A camada de UI vive em `app/src/main/java/com/medtrack/mobile/ui`.
 
-Ela usa Jetpack Compose, ViewModel, LiveData e Navigation Compose.
+Ela usa Jetpack Compose, ViewModel, StateFlow e Navigation Compose.
 
 ## Estrutura
 
@@ -40,13 +40,18 @@ ViewModels existentes:
 Responsabilidades esperadas:
 
 - Expor estado observavel para a tela.
-- Chamar repositories ou services injetados.
+- Chamar casos de uso injetados.
 - Traduzir excecoes em mensagens de UI.
 - Evitar regra de negocio pesada.
 
 ## Estado da UI
 
-O projeto usa `LiveData` em ViewModels atuais. Quando novas telas forem criadas, manter o padrao local ou migrar de forma planejada para `StateFlow`, evitando misturar estilos sem necessidade.
+Os fluxos principais usam UDF: cada ViewModel expoe um unico `StateFlow<UiState>` imutavel,
+recebe acoes por `Intent` e publica efeitos unicos por `SharedFlow`. Compose coleta estado com
+`collectAsStateWithLifecycle`; navegacao e dialogos nao sao representados por booleanos persistentes.
+
+O binding da CameraX pertence ao controlador lifecycle-aware usado pela tela. O ViewModel da camera
+mantem apenas referencias de imagem, selecao da dose e estado de processamento.
 
 Padrao atual observavel:
 

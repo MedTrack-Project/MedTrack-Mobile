@@ -16,7 +16,8 @@
 
 - Coroutines
 - ViewModel
-- LiveData
+- StateFlow e SharedFlow
+- collectAsStateWithLifecycle
 
 ## Dados
 

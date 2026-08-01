@@ -26,7 +26,7 @@ O **MedTrack Mobile** é um app Android desenvolvido para auxiliar no acompanham
 ### 🏗️ Arquitetura do Projeto
 O MedTrack foi desenvolvido seguindo os princípios do **MVVM (Model-View-ViewModel)** para garantir uma separação clara de responsabilidades e facilitar a manutenção do código. Utilizamos componentes modernos do Android Jetpack como:
 - ViewModel para gerenciamento de dados da UI
-- LiveData para atualizações reativas
+- StateFlow imutável e UDF para atualizações reativas
 - Coroutines para operações assíncronas
 
 <div align="center">
@@ -235,6 +235,5 @@ O **MedTrack Web** é a interface administrativa do sistema, desenvolvida para:
 
 Projeto acadêmico desenvolvido para a disciplina de **Projeto Interdisciplinar de Engenharia da Computação 1 (PIEC1)**  
 Universidade Federal Rural de Pernambuco — Unidade Acadêmica de Belo Jardim (UFRPE/UABJ)
-
 
 
