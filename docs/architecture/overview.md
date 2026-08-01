@@ -7,17 +7,18 @@ O MedTrack Mobile e um aplicativo Android nativo em Kotlin para acompanhamento d
 O projeto segue uma arquitetura em camadas, com separacao proxima de MVVM e Clean Architecture pragmatica:
 
 - `ui`: telas em Jetpack Compose, componentes, navegacao e ViewModels.
-- `domain`: modelos de dominio, regras de negocio simples, services e use cases.
+- `domain`: modelos, erros tipados, contratos e casos de uso sem dependencias Android.
 - `data`: persistencia local, rede, DTOs, repositories, sessao.
 - `di`: injeção de depnedências.
-- `utils`: utilitarios transversais, notificacoes, conectividade e excecoes.
+- `utils`: adaptadores Android ainda compartilhados, notificacoes e conectividade.
 
 ## Fluxo principal de dados
 
 ```text
 Tela Compose
   -> ViewModel
-  -> Repository
+  -> Use case / contrato de dominio
+  -> Repository de data
   -> Room / Retrofit / WorkManager / Camera service
   -> Mapper
   -> Domain model
@@ -28,6 +29,8 @@ Tela Compose
 ## Principios
 
 - A UI nao deve acessar Retrofit, Room ou SharedPreferences diretamente.
+- ViewModels dependem de casos de uso ou interfaces, nunca de repositories concretos de `data`.
+- Domain nao importa Android, Compose, Room, Retrofit, OkHttp ou `data`.
 - Repositories coordenam dados locais, remotos e regras de persistencia.
 - Modelos de dominio sao os objetos preferidos para consumo pela aplicacao.
 - DTOs ficam restritos a integracao remota.
@@ -44,13 +47,18 @@ app/src/main/java/com/medtrack/mobile/
 │   └── config/
 ├── data/
 │   ├── local/
+│   ├── camera/
+│   ├── mapper/
 │   ├── remote/
 │   ├── repository/
-│   └── session/
+│   ├── session/
+│   └── worker/
 ├── di/
 ├── domain/
 │   ├── model/
+│   ├── repository/
 │   ├── service/
+│   ├── time/
 │   └── usecase/
 ├── ui/
 │   ├── components/

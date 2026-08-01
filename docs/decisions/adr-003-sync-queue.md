@@ -17,7 +17,9 @@ A implementacao atual aplica isso a scans por meio de:
 
 - `ScanQueueItem`
 - `ScanQueueDao`
-- `ScanRepository.salvarScanOffline`
+- `QueueOfflineScanUseCase` e `ProcessOfflineScanQueueUseCase`
+- contratos `ScanRepository` e `OfflineScanRepository` no dominio
+- implementacao `ScanRepository.enqueue` em `data`
 - `ScanUpload`
 
 ## Consequencias

@@ -16,6 +16,7 @@ Ela concentra persistencia local, integracao HTTP, sessao, repositories e config
 
 ```text
 data/
+├── camera/
 ├── local/
 │   ├── AppDatabase.kt
 │   ├── Migrations.kt
@@ -26,8 +27,11 @@ data/
 │   ├── ApiService.kt
 │   ├── dto/
 │   └── mapper/
+├── mapper/local/
 ├── repository/
-└── session/
+├── session/
+├── system/
+└── worker/
 ```
 
 ## Repositories
@@ -36,11 +40,13 @@ data/
 - `MedicamentoRepository`: sincroniza usuario e medicamentos, agenda notificacoes e confirma uso de medicamento.
 - `ScanRepository`: envia imagens para o servico de scan, salva scans offline e agenda processamento via WorkManager.
 
-Repositories devem ser a unica porta de entrada da UI/ViewModel para dados persistidos ou remotos.
+Repositories implementam contratos do dominio. ViewModels os acessam somente por casos de uso; DAOs
+sao injetados diretamente nas implementacoes, sem expor `AppDatabase`.
 
 ## Persistencia local
 
-O projeto usa Room com `AppDatabase`, atualmente na versao `8`.
+O projeto usa Room com `AppDatabase`, atualmente na versao `9`. O snapshot correspondente fica em
+`app/schemas` para permitir revisao de schema e futuros testes de migration.
 
 Entities registradas:
 

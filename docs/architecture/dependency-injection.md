@@ -14,22 +14,23 @@ Os modulos atuais ficam em `di/`:
 
 - `DatabaseModule`
 - `NetworkModule`
+- `RepositoryModule`
 
 ### Estrutura atual
 
 ````text
 di/
 ├── DatabaseModule.kt
-└── NetworkModule.kt
+├── NetworkModule.kt
+└── RepositoryModule.kt
 ````
 
 ## DatabaseModule
 
 Fornece:
 
-- `AppDatabase` singleton.
-
-DAOs sao obtidos atualmente a partir do banco dentro dos repositories.
+- `AppDatabase` singleton;
+- DAOs individuais consumidos pelos repositories e schedulers.
 
 ## NetworkModule
 
@@ -45,6 +46,12 @@ Fornece:
 - Banco, Retrofit, ApiService e repositories sao singletons.
 - ViewModels sao escopadas ao ciclo de vida da navegacao/tela.
 - `SessionManager` e singleton e acessa `SharedPreferences`.
+
+## Bindings de fronteira
+
+`RepositoryModule` conecta contratos de dominio a implementacoes de autenticacao, medicamentos,
+scan, fila offline, sessao, agendamento, relogio e dispatchers. Ele tambem liga o contrato de camera
+da UI ao adaptador CameraX.
 
 ## Boas praticas
 
