@@ -7,8 +7,10 @@ A integracao remota usa Retrofit, OkHttp e Gson.
 `NetworkModule` cria:
 
 - `OkHttpClient` com logging `BASIC` em debug e `NONE` em release
+- `AuthInterceptor` para adicionar Bearer e invalidar sessao em `401`
 - `Retrofit` com `GsonConverterFactory`
 - `ApiService`
+- data sources remotos e `RemoteCallExecutor`
 
 ## Endpoints atuais
 
@@ -22,13 +24,15 @@ POST <MEDTRACK_SCAN_URL>
 
 ## Autenticacao
 
-O login retorna um token JWT, salvo por `SessionManager` em `SharedPreferences`.
-
-Repositories montam o header:
+O login retorna um token JWT, criptografado com AES-GCM por uma chave nao exportavel do Android
+Keystore. O interceptor monta o header centralmente:
 
 ```text
 Authorization: Bearer <token>
 ```
+
+O endpoint de login nunca recebe esse header. Respostas `401`/`403` viram `InvalidSessionException`;
+um `401` tambem remove a sessao local.
 
 ## DTOs
 
@@ -55,3 +59,4 @@ Network Security Config.
 - Nao registrar senhas, tokens, payloads, imagens ou headers de autenticacao.
 - Validar respostas nulas e erros HTTP antes de acessar `body()`.
 - Manter DTOs desacoplados dos modelos de dominio.
+- Executar contract tests somente contra MockWebServer e fixtures versionadas.

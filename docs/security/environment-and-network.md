@@ -54,9 +54,10 @@ usar mensagens estáticas e não incluir:
 ## Backup e sessão
 
 `allowBackup` está desabilitado. As regras para APIs antigas e atuais também excluem banco,
-SharedPreferences e arquivos como defesa em profundidade. O JWT ainda reside em SharedPreferences
-privado durante esta etapa; sua migração para armazenamento apoiado pelo Android Keystore pertence
-à Etapa 4 e deve preservar sessões existentes com rollback seguro.
+SharedPreferences e arquivos como defesa em profundidade. O JWT é cifrado com AES-GCM e chave não
+exportável do Android Keystore. Na primeira leitura, `SessionManager` migra o valor legado de
+`MyAppPrefs`: grava e valida a representação protegida antes de remover o texto antigo. Dados
+cifrados corrompidos são apagados e exigem nova autenticação. `401` também limpa a sessão.
 
 ## Permissões e notificações
 

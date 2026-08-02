@@ -22,11 +22,12 @@ data/
 │   ├── Migrations.kt
 │   ├── Converters.kt
 │   ├── daos/
-│   └── entity/
+│   ├── entity/
+│   └── source/
 ├── remote/
 │   ├── ApiService.kt
 │   ├── dto/
-│   └── mapper/
+│   └── source/
 ├── mapper/local/
 ├── repository/
 ├── session/
@@ -40,8 +41,9 @@ data/
 - `MedicamentoRepository`: sincroniza usuario e medicamentos, agenda notificacoes e confirma uso de medicamento.
 - `ScanRepository`: envia imagens para o servico de scan, salva scans offline e agenda processamento via WorkManager.
 
-Repositories implementam contratos do dominio. ViewModels os acessam somente por casos de uso; DAOs
-sao injetados diretamente nas implementacoes, sem expor `AppDatabase`.
+Repositories implementam contratos do dominio e coordenam data sources locais/remotos. ViewModels
+os acessam somente por casos de uso. A substituicao do snapshot de usuario e medicamentos ocorre
+em uma transacao Room e o cache local e a source of truth apresentada pela aplicacao.
 
 ## Persistencia local
 
@@ -74,7 +76,11 @@ DAOs principais:
 - confirmacao de medicamento
 - envio de imagem para scan
 
-Retrofit e configurado em `NetworkModule` com Gson e OkHttp logging.
+Retrofit e configurado em `NetworkModule` com uma unica instancia Gson, autenticacao OkHttp
+centralizada e logging sem bodies. `RemoteCallExecutor` converte rede, payload invalido, sessao,
+4xx e 5xx em erros de dominio previsiveis.
+
+O contrato congelado e sua matriz de compatibilidade estao em `docs/contracts/api-v1.md`.
 
 ## Configuracao de endpoints
 
