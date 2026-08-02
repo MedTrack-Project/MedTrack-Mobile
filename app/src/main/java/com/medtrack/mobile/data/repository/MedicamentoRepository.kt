@@ -1,37 +1,28 @@
 package com.medtrack.mobile.data.repository
 
-import android.content.Context
-import android.net.Uri
-import com.google.gson.Gson
-import com.medtrack.mobile.data.local.daos.ConfirmacaoDao
-import com.medtrack.mobile.data.local.daos.MedicamentoV2Dao
-import com.medtrack.mobile.data.local.daos.UsuarioDao
 import com.medtrack.mobile.data.local.entity.ConfirmacaoEntity
+import com.medtrack.mobile.data.local.source.MedicationLocalSource
 import com.medtrack.mobile.data.mapper.local.toDomain
 import com.medtrack.mobile.data.mapper.local.toEntity
 import com.medtrack.mobile.data.mapper.remote.toDomain
-import com.medtrack.mobile.data.remote.ApiService
+import com.medtrack.mobile.data.remote.ConfirmationImageSource
 import com.medtrack.mobile.data.remote.dto.ConfirmacaoRequestDto
+import com.medtrack.mobile.data.remote.source.MedicationRemoteSource
 import com.medtrack.mobile.domain.coroutines.DispatcherProvider
 import com.medtrack.mobile.domain.error.ConfirmationAlreadyExistsException
 import com.medtrack.mobile.domain.error.DoseOutsideAllowedTimeException
-import com.medtrack.mobile.domain.error.InvalidSessionException
+import com.medtrack.mobile.domain.error.InvalidRemoteResponseException
 import com.medtrack.mobile.domain.error.MedicationNotFoundException
-import com.medtrack.mobile.domain.error.RemoteDataException
 import com.medtrack.mobile.domain.model.ConfirmationCommand
 import com.medtrack.mobile.domain.model.LoginResult
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.domain.model.MedicamentoDomain
-import com.medtrack.mobile.domain.model.Usuario
 import com.medtrack.mobile.domain.repository.MedicationRepository
-import com.medtrack.mobile.domain.repository.SessionRepository
 import com.medtrack.mobile.domain.service.MedicationScheduler
 import com.medtrack.mobile.domain.time.AppClock
 import com.medtrack.mobile.domain.usecase.doseKey
 import com.medtrack.mobile.domain.usecase.horariosDoDia
 import com.medtrack.mobile.utils.MedicationTextMatcher
-import com.medtrack.mobile.utils.MultipartImageUtils
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -39,48 +30,40 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.Response
 
 @Singleton
 class MedicamentoRepository @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val apiService: ApiService,
-    private val usuarioDao: UsuarioDao,
-    private val medicamentoV2Dao: MedicamentoV2Dao,
-    private val confirmacaoDao: ConfirmacaoDao,
-    private val sessionRepository: SessionRepository,
+    private val remote: MedicationRemoteSource,
+    private val local: MedicationLocalSource,
+    private val images: ConfirmationImageSource,
     private val notificationScheduler: MedicationScheduler,
     private val clock: AppClock,
     private val dispatchers: DispatcherProvider,
 ) : MedicationRepository {
-    private val gson = Gson()
-
     override suspend fun synchronizeUserData(token: String): LoginResult = withContext(dispatchers.io) {
-        val authHeader = "Bearer $token"
-        val usuario = buscarUsuario(authHeader)
-        val medicamentos = buscarMedicamentos(authHeader)
+        val usuarioDto = remote.user()
+        val medicamentoDtos = remote.medications()
+        val usuario = mapRemote { usuarioDto.toDomain() }
+        val medicamentos = mapRemote { medicamentoDtos.map { it.toDomain() } }
 
-        usuarioDao.insert(usuario.toEntity())
-        medicamentoV2Dao.insertAll(medicamentos.map { it.toEntity() })
-        medicamentos.forEach { notificationScheduler.schedule(it) }
+        local.replaceUserSnapshot(usuario.toEntity(), medicamentos.map { it.toEntity() })
+        val cachedUser = local.user().toDomain()
+        val cachedMedications = local.medications().map { it.toDomain() }
+        cachedMedications.forEach { notificationScheduler.schedule(it) }
 
         LoginResult(
             token = token,
-            usuario = usuario,
-            medicamentos = medicamentos,
+            usuario = cachedUser,
+            medicamentos = cachedMedications,
         )
     }
 
     override suspend fun findMedication(medicamentoId: Long): MedicamentoDomain? = withContext(dispatchers.io) {
-        medicamentoV2Dao.getById(medicamentoId)?.toDomain()
+        local.medication(medicamentoId)?.toDomain()
     }
 
     override suspend fun confirmedDoseKeys(): Set<String> = withContext(dispatchers.io) {
-        confirmacaoDao.getAll()
+        local.confirmations()
             .filter { it.sincronizado }
             .map { confirmacao ->
                 doseKey(
@@ -92,34 +75,22 @@ class MedicamentoRepository @Inject constructor(
     }
 
     override suspend fun confirmMedication(command: ConfirmationCommand) = withContext(dispatchers.io) {
-        val token = sessionRepository.getToken() ?: throw InvalidSessionException()
         val medicamentoCorrespondente = command.medicamentoSelecionadoId
-            ?.let { medicamentoV2Dao.getById(it)?.toDomain() }
+            ?.let { local.medication(it)?.toDomain() }
             ?: encontrarMedicamentoCorrespondente(command.medicamentoCapturado)
             ?: throw MedicationNotFoundException()
 
         processarConfirmacao(
             medicamento = medicamentoCorrespondente,
-            token = token,
-            comprovanteImagemUri = command.comprovanteImagem?.value?.let(Uri::parse),
+            comprovanteImagem = command.comprovanteImagem?.value,
             dataSelecionada = command.dataSelecionada,
             horarioSelecionado = command.horarioSelecionado,
         )
     }
 
-    private suspend fun buscarUsuario(authHeader: String): Usuario = executeRemote { apiService.getUsuario(authHeader) }
-        ?.toDomain()
-        ?: throw RemoteDataException()
-
-    private suspend fun buscarMedicamentos(authHeader: String): List<MedicamentoDomain> = executeRemote {
-        apiService.getMedicamentos(authHeader)
-    }
-        .orEmpty()
-        .map { it.toDomain() }
-
     private suspend fun encontrarMedicamentoCorrespondente(
         medicamentoCapturado: MedicamentoCapturadoDomain,
-    ): MedicamentoDomain? = medicamentoV2Dao.getAll()
+    ): MedicamentoDomain? = local.medications()
         .map { it.toDomain() }
         .mapNotNull { medicamentoSalvo ->
             if (
@@ -148,8 +119,7 @@ class MedicamentoRepository @Inject constructor(
 
     private suspend fun processarConfirmacao(
         medicamento: MedicamentoDomain,
-        token: String,
-        comprovanteImagemUri: Uri?,
+        comprovanteImagem: String?,
         dataSelecionada: String?,
         horarioSelecionado: String?,
     ) {
@@ -163,10 +133,10 @@ class MedicamentoRepository @Inject constructor(
             )
         val dataConfirmacao = dataSelecionada?.takeIf { it.isNotBlank() }
             ?: clock.localDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        val confirmacaoExistente = confirmacaoDao.getConfirmacao(
-            medicamentoId = medicamento.id,
-            data = dataConfirmacao,
-            horario = horarioConfirmacao,
+        val confirmacaoExistente = local.confirmation(
+            medicationId = medicamento.id,
+            date = dataConfirmacao,
+            time = horarioConfirmacao,
         )
 
         if (confirmacaoExistente?.sincronizado == true) {
@@ -174,7 +144,7 @@ class MedicamentoRepository @Inject constructor(
         }
 
         val request = ConfirmacaoRequestDto(
-            usuarioId = usuarioDao.getUsuario().id,
+            usuarioId = local.user().id,
             medicamentoId = medicamento.id,
             horario = horarioConfirmacao,
             data = dataConfirmacao,
@@ -182,32 +152,20 @@ class MedicamentoRepository @Inject constructor(
             observacao = null,
         )
 
-        executeRemote {
-            apiService.confirmarMedicamento(
-                token = "Bearer $token",
-                dados = criarParteDados(request),
-                imagem = criarParteImagem(comprovanteImagemUri),
-            )
-        }
-
-        if (confirmacaoExistente != null) {
-            confirmacaoDao.update(
-                confirmacaoExistente.copy(
-                    foiTomado = true,
-                    sincronizado = true,
-                ),
-            )
-        } else {
-            confirmacaoDao.insert(
-                ConfirmacaoEntity(
+        remote.confirm(
+            request,
+            images.jpeg(comprovanteImagem, "confirmacao_${clock.instant().toEpochMilli()}.jpg"),
+        )
+        local.saveConfirmation(
+            (
+                confirmacaoExistente ?: ConfirmacaoEntity(
                     medicamentoId = medicamento.id,
                     horario = horarioConfirmacao,
                     data = dataConfirmacao,
                     foiTomado = true,
-                    sincronizado = true,
-                ),
-            )
-        }
+                )
+                ).copy(foiTomado = true, sincronizado = true),
+        )
     }
 
     private fun encontrarHorarioMaisProximo(horarios: List<String>): String {
@@ -235,21 +193,11 @@ class MedicamentoRepository @Inject constructor(
         }
     }
 
-    private fun criarParteDados(request: ConfirmacaoRequestDto): RequestBody =
-        gson.toJson(request).toRequestBody("application/json".toMediaType())
-
-    private fun criarParteImagem(uri: Uri?): MultipartBody.Part? = MultipartImageUtils.createJpegPart(
-        context = context,
-        uri = uri,
-        partName = "imagem",
-        filename = "confirmacao_${clock.instant().toEpochMilli()}.jpg",
-    )
-
-    private suspend fun <T> executeRemote(call: suspend () -> Response<T>): T? {
-        val response = runCatching { call() }.getOrElse { throw RemoteDataException(it) }
-        if (!response.isSuccessful) throw RemoteDataException()
-        return response.body()
-    }
-
     private data class MedicamentoMatch(val medicamento: MedicamentoDomain, val score: Double)
+
+    private fun <T> mapRemote(block: () -> T): T = try {
+        block()
+    } catch (error: Exception) {
+        throw InvalidRemoteResponseException(error)
+    }
 }

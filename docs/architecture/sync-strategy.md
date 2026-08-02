@@ -11,8 +11,9 @@ Depois do login, o app usa o token para buscar:
 - usuario
 - medicamentos
 
-Esses dados sao salvos em Room. Em seguida, notificacoes sao agendadas localmente para os 
-horarios dos medicamentos.
+As duas respostas sao validadas antes de qualquer escrita. Usuario e medicamentos substituem o
+snapshot Room em uma unica transacao; o repository le o snapshot persistido como source of truth e
+so entao agenda notificacoes. Falha parcial de rede preserva integralmente o cache anterior.
 
 ### Confirmacao de medicamento
 
@@ -20,12 +21,11 @@ Ao confirmar um medicamento:
 
 1. O app encontra o medicamento local correspondente ao scan.
 2. Verifica se ja existe confirmacao local para o mesmo medicamento, data e horario.
-3. Insere `ConfirmacaoEntity` local.
-4. Envia a confirmacao para a API.
-5. Marca a confirmacao como `sincronizado = true`.
+3. Envia a confirmacao para a API.
+4. Persiste ou atualiza `ConfirmacaoEntity` como sincronizada em transacao.
 
-Hoje, se a API falhar depois da insercao local, a excecao e propagada e a confirmacao pode 
-permanecer nao sincronizada.
+Uma falha remota nao cria confirmacao local incorretamente marcada como concluida. O fluxo
+offline-first de confirmacoes duraveis permanece planejado para a Etapa 5.
 
 ### Scans offline
 

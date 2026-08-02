@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.medtrack.mobile.BuildConfig
 import com.medtrack.mobile.core.config.ApiEndpoints
 import com.medtrack.mobile.data.remote.ApiService
+import com.medtrack.mobile.data.remote.AuthInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,12 +26,13 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(45, TimeUnit.SECONDS)
             .writeTimeout(45, TimeUnit.SECONDS)
             .callTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
 
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
@@ -48,9 +50,9 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(client: OkHttpClient, endpoints: ApiEndpoints): Retrofit = Retrofit.Builder()
+    fun provideRetrofit(client: OkHttpClient, endpoints: ApiEndpoints, gson: Gson): Retrofit = Retrofit.Builder()
         .baseUrl(endpoints.apiBaseUrl)
-        .addConverterFactory(GsonConverterFactory.create(provideGson()))
+        .addConverterFactory(GsonConverterFactory.create(gson))
         .client(client)
         .build()
 

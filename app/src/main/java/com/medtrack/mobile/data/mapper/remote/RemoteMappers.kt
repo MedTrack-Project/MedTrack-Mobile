@@ -40,7 +40,7 @@ fun FrequenciaUsoDto.toDomain() = FrequenciaUsoDomain(
 
 fun MedicamentoScanDto.toCapturadoDomain() = MedicamentoCapturadoDomain(
     nome = nome ?: "Nao identificado",
-    compostoAtivo = agente_ativo ?: "Nao identificado",
+    compostoAtivo = agenteAtivo ?: "Nao identificado",
     dosagem = dosagem ?: "N/A",
     quantidade = quantidade ?: "0",
     validade = validade ?: "",
