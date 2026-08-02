@@ -32,7 +32,7 @@ class RemoteMappersTest {
     fun `scan dto maps captured medication values`() {
         val domain = MedicamentoScanDto(
             nome = "Losartana",
-            agente_ativo = "Losartana Potassica",
+            agenteAtivo = "Losartana Potassica",
             dosagem = "50mg",
             quantidade = "30 comprimidos",
             validade = "2027-01",
@@ -49,7 +49,7 @@ class RemoteMappersTest {
     fun `scan dto uses fallback values when OCR response is incomplete`() {
         val domain = MedicamentoScanDto(
             nome = null,
-            agente_ativo = null,
+            agenteAtivo = null,
             dosagem = null,
             quantidade = null,
             validade = null,
@@ -87,7 +87,7 @@ class RemoteMappersTest {
     fun `scan dto applies fallbacks only to missing fields`() {
         val domain = MedicamentoScanDto(
             nome = "Atenolol",
-            agente_ativo = null,
+            agenteAtivo = null,
             dosagem = "25mg",
             quantidade = null,
             validade = "2028-02",
