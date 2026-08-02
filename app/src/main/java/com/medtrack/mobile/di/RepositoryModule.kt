@@ -21,6 +21,10 @@ import com.medtrack.mobile.data.session.TokenCipher
 import com.medtrack.mobile.data.session.TokenPreferences
 import com.medtrack.mobile.data.system.DefaultDispatcherProvider
 import com.medtrack.mobile.data.system.SystemClock
+import com.medtrack.mobile.data.worker.OfflineScanWorkScheduler
+import com.medtrack.mobile.data.worker.ScanFileCleaner
+import com.medtrack.mobile.data.worker.ScanFileCleanup
+import com.medtrack.mobile.data.worker.WorkManagerOfflineScanScheduler
 import com.medtrack.mobile.domain.coroutines.DispatcherProvider
 import com.medtrack.mobile.domain.repository.AuthenticationRepository
 import com.medtrack.mobile.domain.repository.MedicationRepository
@@ -29,7 +33,9 @@ import com.medtrack.mobile.domain.repository.SessionRepository
 import com.medtrack.mobile.domain.service.MedicationScheduler
 import com.medtrack.mobile.domain.time.AppClock
 import com.medtrack.mobile.ui.camera.CameraController
+import com.medtrack.mobile.utils.notifications.AndroidOfflineScanNotifier
 import com.medtrack.mobile.utils.notifications.NotificationScheduler
+import com.medtrack.mobile.utils.notifications.OfflineScanNotifier
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -54,6 +60,15 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindConfirmationImageSource(source: MultipartImageFactory): ConfirmationImageSource
+
+    @Binds
+    abstract fun bindOfflineScanWorkScheduler(source: WorkManagerOfflineScanScheduler): OfflineScanWorkScheduler
+
+    @Binds
+    abstract fun bindOfflineScanNotifier(notifier: AndroidOfflineScanNotifier): OfflineScanNotifier
+
+    @Binds
+    abstract fun bindScanFileCleanup(cleaner: ScanFileCleaner): ScanFileCleanup
 
     @Binds
     @Singleton
