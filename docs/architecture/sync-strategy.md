@@ -44,10 +44,12 @@ persistir localmente
 
 ## Estados recomendados
 
-- `PENDENTE`: criado localmente, ainda nao enviado.
-- `ENVIANDO`: tentativa em andamento.
-- `CONCLUIDO`: processado com sucesso.
-- `ERRO`: falha que precisa de acao ou nova tentativa.
+- `PENDING`: criado localmente, ainda nao enviado.
+- `PROCESSING`: claim atomico adquirido.
+- `UPLOADED`: remoto concluido, efeitos locais em finalizacao.
+- `COMPLETED`: efeitos concluídos, limpeza pendente ou finalizada.
+- `RETRY`: falha transitória sob backoff.
+- `FAILED`: falha permanente ou tentativas esgotadas.
 
 ## Evitar duplicidade
 

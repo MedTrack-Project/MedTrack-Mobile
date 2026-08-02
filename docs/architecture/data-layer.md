@@ -47,7 +47,7 @@ em uma transacao Room e o cache local e a source of truth apresentada pela aplic
 
 ## Persistencia local
 
-O projeto usa Room com `AppDatabase`, atualmente na versao `9`. O snapshot correspondente fica em
+O projeto usa Room com `AppDatabase`, atualmente na versao `10`. O snapshot correspondente fica em
 `app/schemas` para permitir revisao de schema e futuros testes de migration.
 
 Entities registradas:
