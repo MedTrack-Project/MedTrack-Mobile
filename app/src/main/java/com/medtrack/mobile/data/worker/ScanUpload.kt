@@ -1,120 +1,45 @@
 package com.medtrack.mobile.data.worker
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.net.toUri
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.medtrack.mobile.MainActivity
-import com.medtrack.mobile.data.navigation.PendingNavigationStore
 import com.medtrack.mobile.domain.error.InvalidSessionException
-import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
+import com.medtrack.mobile.domain.repository.OfflineScanRepository
 import com.medtrack.mobile.domain.usecase.ProcessOfflineScanQueueUseCase
-import com.medtrack.mobile.ui.navigation.AppIntentContract
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
-import java.io.File
+import com.medtrack.mobile.utils.notifications.OfflineScanNotifier
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
-class ScanUpload(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
-
-    companion object {
-        private const val TAG = "ScanUpload"
-    }
-
-    private val processQueue: ProcessOfflineScanQueueUseCase by lazy {
-        EntryPointAccessors.fromApplication(
-            applicationContext,
-            ScanUploadEntryPoint::class.java,
-        ).processOfflineScanQueue()
-    }
-    private val navigationStore: PendingNavigationStore by lazy {
-        EntryPointAccessors.fromApplication(
-            applicationContext,
-            ScanUploadEntryPoint::class.java,
-        ).pendingNavigationStore()
-    }
-
+@HiltWorker
+class ScanUpload @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val processQueue: ProcessOfflineScanQueueUseCase,
+    private val repository: OfflineScanRepository,
+    private val notifier: OfflineScanNotifier,
+    private val fileCleaner: ScanFileCleanup,
+) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result = try {
-        val result = processQueue()
-        result.completed.forEach { processed ->
-            enviarNotificacaoComDados(processed.medicamento)
-            val file = File(processed.pendingScan.image.value.toUri().path.orEmpty())
-            if (!file.delete()) Log.w(TAG, "Arquivo processado nao pode ser removido")
+        repository.completedScans().forEach { completed ->
+            if (fileCleaner.delete(completed.image)) repository.deleteCompleted(completed.id)
         }
-        if (result.shouldRetry) Result.retry() else Result.success()
+        val result = processQueue()
+        result.uploaded.forEach { processed ->
+            notifier.show(processed.pendingScan.id, processed.medicamento)
+            repository.markCompleted(processed.pendingScan.id)
+            if (fileCleaner.delete(processed.pendingScan.image)) {
+                repository.deleteCompleted(processed.pendingScan.id)
+            }
+        }
+        when {
+            result.shouldRetry && runAttemptCount + 1 < ProcessOfflineScanQueueUseCase.MAX_ATTEMPTS -> Result.retry()
+            result.shouldRetry -> Result.failure()
+            else -> Result.success()
+        }
     } catch (_: InvalidSessionException) {
         Result.failure()
     } catch (_: Exception) {
-        Log.e(TAG, "Erro ao processar fila offline")
-        Result.retry()
-    }
-
-    private fun enviarNotificacaoComDados(medicamento: MedicamentoCapturadoDomain) {
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "offline_scan_channel"
-
-        val channel = NotificationChannel(
-            channelId,
-            "Scans Offline",
-            NotificationManager.IMPORTANCE_HIGH,
-        ).apply {
-            lockscreenVisibility = NotificationCompat.VISIBILITY_PRIVATE
-        }
-        notificationManager.createNotificationChannel(channel)
-
-        val reference = navigationStore.save(medicamento)
-        val intent = Intent(applicationContext, MainActivity::class.java).apply {
-            action = AppIntentContract.ACTION_OPEN_CONFIRMATION
-            putExtra(AppIntentContract.EXTRA_RESULT_REFERENCE, reference)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            applicationContext,
-            System.currentTimeMillis().toInt(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(android.R.drawable.stat_sys_upload_done)
-            .setContentTitle("Medicamento Processado")
-            .setContentText(medicamento.nome)
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText(
-                        """
-                        ${medicamento.nome}
-                        ${medicamento.compostoAtivo}
-                        Dosagem: ${medicamento.dosagem}
-                        Quantidade: ${medicamento.quantidade}
-                        Validade: ${medicamento.validade?.ifBlank { "N/A" } ?: "N/A"}
-                        
-                        Clique para confirmar ou editar as informacoes
-                        """.trimIndent(),
-                    ),
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .build()
-
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
-    }
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface ScanUploadEntryPoint {
-        fun processOfflineScanQueue(): ProcessOfflineScanQueueUseCase
-        fun pendingNavigationStore(): PendingNavigationStore
+        if (runAttemptCount + 1 < ProcessOfflineScanQueueUseCase.MAX_ATTEMPTS) Result.retry() else Result.failure()
     }
 }

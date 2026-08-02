@@ -175,13 +175,12 @@ class NotificationScheduler @Inject constructor(
         dataAgendamento: LocalDate,
         notificationId: Long,
     ): Intent = Intent(context, NotificationReceiver::class.java).apply {
-        putExtra("notificationId", notificationId)
-        putExtra("medicamentoId", medicamento.id)
-        putExtra("nome", medicamento.nome)
-        putExtra("compostoAtivo", medicamento.compostoAtivo)
-        putExtra("horario", horario.toString())
-        putExtra("imagemUrl", medicamento.imagemUrl)
-        putExtra("dataAgendamento", dataAgendamento.toString())
+        putExtra(NotificationPayload.KEY_NOTIFICATION_ID, notificationId)
+        putExtra(NotificationPayload.KEY_MEDICATION_ID, medicamento.id)
+        putExtra(NotificationPayload.KEY_NAME, medicamento.nome)
+        putExtra(NotificationPayload.KEY_ACTIVE_INGREDIENT, medicamento.compostoAtivo)
+        putExtra(NotificationPayload.KEY_TIME, horario.toString())
+        putExtra(NotificationPayload.KEY_DATE, dataAgendamento.toString())
     }
 
     private fun notificationData(
@@ -190,13 +189,12 @@ class NotificationScheduler @Inject constructor(
         dataAgendamento: LocalDate,
         notificationId: Long,
     ): Data = Data.Builder()
-        .putLong("notificationId", notificationId)
-        .putLong("medicamentoId", medicamento.id)
-        .putString("nome", medicamento.nome)
-        .putString("compostoAtivo", medicamento.compostoAtivo)
-        .putString("horario", horario.toString())
-        .putString("imagemUrl", medicamento.imagemUrl)
-        .putString("dataAgendamento", dataAgendamento.toString())
+        .putLong(NotificationPayload.KEY_NOTIFICATION_ID, notificationId)
+        .putLong(NotificationPayload.KEY_MEDICATION_ID, medicamento.id)
+        .putString(NotificationPayload.KEY_NAME, medicamento.nome)
+        .putString(NotificationPayload.KEY_ACTIVE_INGREDIENT, medicamento.compostoAtivo)
+        .putString(NotificationPayload.KEY_TIME, horario.toString())
+        .putString(NotificationPayload.KEY_DATE, dataAgendamento.toString())
         .build()
 
     private fun nextTriggerAt(horario: LocalTime): Long {

@@ -16,8 +16,13 @@ class PendingNavigationStore @Inject constructor(
 ) {
     fun save(medicamento: MedicamentoCapturadoDomain): String {
         val reference = UUID.randomUUID().toString()
-        directory().resolve(reference).writeText(gson.toJson(medicamento))
+        save(reference, medicamento)
         return reference
+    }
+
+    fun save(reference: String, medicamento: MedicamentoCapturadoDomain) {
+        require(reference.matches(Regex("[a-f0-9-]{36}")))
+        directory().resolve(reference).writeText(gson.toJson(medicamento))
     }
 
     fun consume(reference: String): MedicamentoCapturadoDomain? {

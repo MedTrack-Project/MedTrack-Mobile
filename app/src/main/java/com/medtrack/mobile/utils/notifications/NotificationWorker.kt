@@ -7,28 +7,23 @@ import androidx.work.WorkerParameters
 class NotificationWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     override fun doWork(): Result {
-        val notificationId = inputData.getLong("notificationId", -1)
-        val medicamentoId = inputData.getLong("medicamentoId", -1)
-        var nome = inputData.getString("nome") ?: return Result.failure()
-        val compostoAtivo = inputData.getString("compostoAtivo").orEmpty()
-        val horario = inputData.getString("horario") ?: return Result.failure()
-        val imagemUrl = inputData.getString("imagemUrl")
-        val dataAgendamento = inputData.getString("dataAgendamento")
-
-        if (nome.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
-            nome.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
-        ) {
-            nome = compostoAtivo.ifBlank { nome }
-        }
+        val payload = NotificationPayload(
+            notificationId = inputData.getLong(NotificationPayload.KEY_NOTIFICATION_ID, -1).toInt(),
+            medicationId = inputData.getLong(NotificationPayload.KEY_MEDICATION_ID, -1),
+            name = inputData.getString(NotificationPayload.KEY_NAME) ?: return Result.failure(),
+            activeIngredient = inputData.getString(NotificationPayload.KEY_ACTIVE_INGREDIENT).orEmpty(),
+            time = inputData.getString(NotificationPayload.KEY_TIME) ?: return Result.failure(),
+            date = inputData.getString(NotificationPayload.KEY_DATE) ?: return Result.failure(),
+        )
+        if (payload.notificationId <= 0 || payload.medicationId <= 0) return Result.failure()
 
         NotificationHelper.showNotification(
             context = applicationContext,
-            medicamentoId = medicamentoId,
-            nome = nome,
-            horario = horario,
-            imagemUrl = imagemUrl,
-            dataAgendamento = dataAgendamento,
-            notificationId = notificationId.takeIf { it > 0 }?.toInt(),
+            medicamentoId = payload.medicationId,
+            nome = payload.displayName(),
+            horario = payload.time,
+            dataAgendamento = payload.date,
+            notificationId = payload.notificationId,
         )
 
         return Result.success()

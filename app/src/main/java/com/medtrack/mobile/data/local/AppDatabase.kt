@@ -23,7 +23,7 @@ import com.medtrack.mobile.data.local.entity.UsuarioEntity
         ConfirmacaoEntity::class,
         ScanQueueItem::class,
     ],
-    version = 9,
+    version = 10,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -42,14 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "app_database_db",
             )
-                .addMigrations(
-                    MIGRATION_1_2,
-                    MIGRATION_2_3,
-                    MIGRATION_3_4,
-                    MIGRATION_6_7,
-                    MIGRATION_7_8,
-                    MIGRATION_8_9,
-                )
+                .addMigrations(*SUPPORTED_MIGRATIONS)
                 .fallbackToDestructiveMigration(false)
                 .build()
             INSTANCE = instance

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.medtrack.mobile.MainActivity
@@ -28,6 +29,7 @@ object NotificationHelper {
         imagemUrl: String? = null,
         dataAgendamento: String? = null,
         notificationId: Int? = null,
+        urgent: Boolean = false,
     ) {
         createNotificationChannel(context)
 
@@ -57,7 +59,7 @@ object NotificationHelper {
             .setBigContentTitle("Hora do remedio!")
             .setSummaryText("MedTrack - Lembrete")
 
-        val notification = NotificationCompat.Builder(context, "medicamento_channel")
+        val builder = NotificationCompat.Builder(context, "medicamento_channel")
             .setContentTitle("Hora do remedio: $nome")
             .setContentText("Horario: $horarioFormatado")
             .setSmallIcon(R.drawable.medtrack_white_icon)
@@ -70,7 +72,11 @@ object NotificationHelper {
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            .build()
+        if (urgent && NotificationManagerCompat.from(context).canUseFullScreenIntent()) {
+            builder.setFullScreenIntent(pendingIntent, true)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+        }
+        val notification = builder.build()
 
         val notificationManager = context.getSystemService(
             Context.NOTIFICATION_SERVICE,

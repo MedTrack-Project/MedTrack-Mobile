@@ -57,6 +57,6 @@ class CriticalFlowsComposeTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Losartana").assertIsDisplayed()
+        composeRule.onNodeWithText("Nome: Losartana").assertIsDisplayed()
     }
 }

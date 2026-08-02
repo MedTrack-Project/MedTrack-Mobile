@@ -1,99 +1,61 @@
 package com.medtrack.mobile.utils.notifications
 
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
-import com.medtrack.mobile.MainActivity
-import com.medtrack.mobile.R
-import com.medtrack.mobile.ui.navigation.AppRoutes
-import com.medtrack.mobile.utils.formatarHorario
 import java.time.LocalDate
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val pendingResult = goAsync()
-        val notificationId = intent.getLongExtra("notificationId", -1)
-        val medicamentoId = intent.getLongExtra("medicamentoId", -1)
-        var nome = intent.getStringExtra("nome")
-        val horarioOriginal = intent.getStringExtra("horario")
-        val compostoAtivo = intent.getStringExtra("compostoAtivo")
-        val imagemUrl = intent.getStringExtra("imagemUrl")
-        val dataAgendamento = intent.getStringExtra("dataAgendamento") ?: LocalDate.now().toString()
+        val payload = NotificationPayload.fromIntent(intent) ?: return
+        NotificationHelper.showNotification(
+            context = context,
+            medicamentoId = payload.medicationId,
+            nome = payload.displayName(),
+            horario = payload.time,
+            dataAgendamento = payload.date,
+            notificationId = payload.notificationId,
+            urgent = true,
+        )
+    }
+}
 
-        if (medicamentoId == -1L ||
-            nome == null ||
-            horarioOriginal == null ||
-            compostoAtivo == null
-        ) {
-            pendingResult.finish()
-            return
-        }
+data class NotificationPayload(
+    val notificationId: Int,
+    val medicationId: Long,
+    val name: String,
+    val activeIngredient: String,
+    val time: String,
+    val date: String,
+) {
+    fun displayName(): String = if (
+        name.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
+        name.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
+    ) {
+        activeIngredient.ifBlank { name }
+    } else {
+        name
+    }
 
-        val horario = formatarHorario(horarioOriginal)
+    companion object {
+        const val KEY_NOTIFICATION_ID = "notificationId"
+        const val KEY_MEDICATION_ID = "medicamentoId"
+        const val KEY_NAME = "nome"
+        const val KEY_ACTIVE_INGREDIENT = "compostoAtivo"
+        const val KEY_TIME = "horario"
+        const val KEY_DATE = "dataAgendamento"
 
-        if (
-            nome.equals("MEDICAMENTO GENERICO", ignoreCase = true) ||
-            nome.equals("MEDICAMENTO GENÉRICO", ignoreCase = true)
-        ) {
-            nome = compostoAtivo
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val deepLinkIntent = Intent(context, MainActivity::class.java).apply {
-                    action = Intent.ACTION_VIEW
-                    data = AppRoutes.doseHorarioDeepLink(
-                        medicamentoId = medicamentoId,
-                        data = dataAgendamento,
-                        horario = horario,
-                    ).toUri()
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-
-                val fullScreenPendingIntent = PendingIntent.getActivity(
-                    context,
-                    medicamentoId.toInt(),
-                    deepLinkIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                )
-
-                val bigTextStyle = NotificationCompat.BigTextStyle()
-                    .bigText("São $horario, está na hora de tomar $nome")
-                    .setBigContentTitle("Hora do remedio!")
-                    .setSummaryText("MedTrack - Lembrete")
-
-                NotificationCompat.Builder(context, "medicamento_channel")
-                    .setContentTitle("Hora de tomar $nome")
-                    .setContentText("Horario: $horario")
-                    .setSmallIcon(R.drawable.medtrack_white_icon)
-                    .setLargeIcon(NotificationHelper.loadMedicationBitmap(context, imagemUrl))
-                    .setStyle(bigTextStyle)
-                    .setColorized(true)
-                    .setColor(ContextCompat.getColor(context, R.color.notification_color))
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_ALARM)
-                    .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-                    .setFullScreenIntent(fullScreenPendingIntent, true)
-                    .setContentIntent(fullScreenPendingIntent)
-                    .setAutoCancel(true)
-                    .build()
-                    .let { notification ->
-                        context.getSystemService(NotificationManager::class.java).notify(
-                            notificationId.takeIf { it > 0 }?.toInt() ?: medicamentoId.toInt(),
-                            notification,
-                        )
-                    }
-            } finally {
-                pendingResult.finish()
-            }
+        fun fromIntent(intent: Intent): NotificationPayload? {
+            val medicationId = intent.getLongExtra(KEY_MEDICATION_ID, -1)
+            if (medicationId <= 0) return null
+            return NotificationPayload(
+                notificationId = intent.getLongExtra(KEY_NOTIFICATION_ID, medicationId).toInt(),
+                medicationId = medicationId,
+                name = intent.getStringExtra(KEY_NAME) ?: return null,
+                activeIngredient = intent.getStringExtra(KEY_ACTIVE_INGREDIENT).orEmpty(),
+                time = intent.getStringExtra(KEY_TIME) ?: return null,
+                date = intent.getStringExtra(KEY_DATE) ?: LocalDate.now().toString(),
+            )
         }
     }
 }

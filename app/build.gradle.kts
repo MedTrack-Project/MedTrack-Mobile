@@ -142,6 +142,7 @@ android {
             "**/libsurface_util_jni.so",
         )
     }
+    sourceSets.getByName("androidTest").assets.directories.add("$projectDir/schemas")
 }
 
 val validateReleaseConfiguration = tasks.register("validateReleaseConfiguration") {
@@ -278,6 +279,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(platform(libs.kotlinx.serialization.bom))
     implementation(libs.androidx.concurrent.futures)
     implementation(libs.androidx.concurrent.futures.ktx)
     implementation(libs.guava)
@@ -287,6 +289,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
     testImplementation(libs.junit)
     testImplementation(libs.androidx.arch.core.testing)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -297,7 +300,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.concurrent.futures)
     androidTestImplementation(libs.androidx.concurrent.futures.ktx)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.androidx.work.testing)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
 }

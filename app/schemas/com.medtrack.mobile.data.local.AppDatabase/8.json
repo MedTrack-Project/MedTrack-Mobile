@@ -1,0 +1,302 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 8,
+    "identityHash": "6d747f87dc59dad1ffe979fa4264e417",
+    "entities": [
+      {
+        "tableName": "usuario",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `nome` TEXT NOT NULL, `email` TEXT NOT NULL, `nomeUsuario` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nomeUsuario",
+            "columnName": "nomeUsuario",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "medicamentos_v2",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `nome` TEXT NOT NULL, `compostoAtivo` TEXT NOT NULL, `dosagem` TEXT NOT NULL, `freq_frequenciaUsoTipo` TEXT NOT NULL, `freq_usoContinuo` INTEGER NOT NULL, `freq_horariosEspecificos` TEXT NOT NULL, `freq_intervaloHoras` INTEGER, `freq_primeiroHorario` TEXT, `freq_dataInicio` TEXT, `freq_dataTermino` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nome",
+            "columnName": "nome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "compostoAtivo",
+            "columnName": "compostoAtivo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dosagem",
+            "columnName": "dosagem",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequenciaUso.frequenciaUsoTipo",
+            "columnName": "freq_frequenciaUsoTipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequenciaUso.usoContinuo",
+            "columnName": "freq_usoContinuo",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequenciaUso.horariosEspecificos",
+            "columnName": "freq_horariosEspecificos",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequenciaUso.intervaloHoras",
+            "columnName": "freq_intervaloHoras",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frequenciaUso.primeiroHorario",
+            "columnName": "freq_primeiroHorario",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "frequenciaUso.dataInicio",
+            "columnName": "freq_dataInicio",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "frequenciaUso.dataTermino",
+            "columnName": "freq_dataTermino",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "notificacoes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `medicamentoId` INTEGER NOT NULL, `horario` TEXT NOT NULL, `dataAgendamento` TEXT NOT NULL, `exibida` INTEGER NOT NULL, FOREIGN KEY(`medicamentoId`) REFERENCES `medicamentos_v2`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "medicamentoId",
+            "columnName": "medicamentoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horario",
+            "columnName": "horario",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataAgendamento",
+            "columnName": "dataAgendamento",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "exibida",
+            "columnName": "exibida",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_notificacoes_medicamentoId",
+            "unique": false,
+            "columnNames": [
+              "medicamentoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_notificacoes_medicamentoId` ON `${TABLE_NAME}` (`medicamentoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "medicamentos_v2",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "medicamentoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "confirmacoes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `medicamentoId` INTEGER NOT NULL, `horario` TEXT NOT NULL, `data` TEXT NOT NULL, `foiTomado` INTEGER NOT NULL, `observacao` TEXT, `sincronizado` INTEGER NOT NULL, FOREIGN KEY(`medicamentoId`) REFERENCES `medicamentos_v2`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "medicamentoId",
+            "columnName": "medicamentoId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horario",
+            "columnName": "horario",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "data",
+            "columnName": "data",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "foiTomado",
+            "columnName": "foiTomado",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observacao",
+            "columnName": "observacao",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sincronizado",
+            "columnName": "sincronizado",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_confirmacoes_medicamentoId",
+            "unique": false,
+            "columnNames": [
+              "medicamentoId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_confirmacoes_medicamentoId` ON `${TABLE_NAME}` (`medicamentoId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "medicamentos_v2",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "medicamentoId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "scan_queue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `imagePath` TEXT NOT NULL, `status` TEXT NOT NULL, `timestamp` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imagePath",
+            "columnName": "imagePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6d747f87dc59dad1ffe979fa4264e417')"
+    ]
+  }
+}
