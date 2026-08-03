@@ -130,6 +130,7 @@ private fun ErrorDose(message: String) {
     }
 }
 
+@Suppress("LongMethod") // O conteúdo agrupa a apresentação declarativa de uma única dose.
 @Composable
 private fun DoseContent(medicamento: MedicamentoDomain, horario: String, status: DoseStatus, onScanClick: () -> Unit) {
     val scanEnabled = status != DoseStatus.FUTURE && status != DoseStatus.CONFIRMED

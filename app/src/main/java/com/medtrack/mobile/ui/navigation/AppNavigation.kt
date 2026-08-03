@@ -29,6 +29,7 @@ import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoViewModel
 import com.medtrack.mobile.ui.screen.viewmodel.SelectedDose
 import com.medtrack.mobile.utils.connection.ConnectivityObserver
 
+@Suppress("LongMethod") // O NavHost mantém o grafo declarativo completo em um único ponto de composição.
 @Composable
 fun AppNavigation(cameraController: CameraController) {
     val navController = rememberNavController()

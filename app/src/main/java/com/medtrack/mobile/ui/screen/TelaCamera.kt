@@ -52,6 +52,7 @@ import com.medtrack.mobile.ui.screen.viewmodel.CameraIntent
 import com.medtrack.mobile.ui.screen.viewmodel.CameraViewModel
 import com.medtrack.mobile.utils.connection.ConnectivityObserver
 
+@Suppress("LongMethod") // Preview, overlay e controles formam uma única composição da câmera.
 @Composable
 fun TelaCamera(
     onBackClick: () -> Unit,

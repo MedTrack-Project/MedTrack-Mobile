@@ -46,6 +46,7 @@ import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoIntent
 import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoUiState
 import com.medtrack.mobile.ui.screen.viewmodel.MedicamentoViewModel
 
+@Suppress("LongMethod") // Estados e ações pertencem à mesma árvore declarativa de confirmação.
 @Composable
 fun TelaConfirmacao(
     cameraViewModel: CameraViewModel,

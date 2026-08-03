@@ -57,6 +57,7 @@ fun TelaLogin(loginViewModel: LoginViewModel, onLoginSuccess: () -> Unit, onForg
     LoginContent(state, loginViewModel::onIntent, onForgotPasswordClick)
 }
 
+@Suppress("LongMethod") // Estado local e formulário compõem uma única árvore declarativa de login.
 @Composable
 fun LoginContent(state: LoginUiState, onIntent: (LoginIntent) -> Unit, onForgotPasswordClick: () -> Unit) {
     var username by rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
