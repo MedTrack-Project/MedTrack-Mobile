@@ -55,10 +55,14 @@ class DoseHorarioViewModel @Inject constructor(
     }
 
     private fun savedRequest(): DoseHorarioIntent.Load? {
-        val medicationId = savedStateHandle.get<Long>(KEY_MEDICATION_ID) ?: return null
-        val date = savedStateHandle.get<String>(KEY_DATE) ?: return null
-        val time = savedStateHandle.get<String>(KEY_TIME) ?: return null
-        return DoseHorarioIntent.Load(medicationId, date, time)
+        val medicationId = savedStateHandle.get<Long>(KEY_MEDICATION_ID)
+        val date = savedStateHandle.get<String>(KEY_DATE)
+        val time = savedStateHandle.get<String>(KEY_TIME)
+        return if (medicationId != null && date != null && time != null) {
+            DoseHorarioIntent.Load(medicationId, date, time)
+        } else {
+            null
+        }
     }
 
     private companion object {

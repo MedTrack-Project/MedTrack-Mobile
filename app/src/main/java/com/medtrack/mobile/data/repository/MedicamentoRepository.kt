@@ -197,7 +197,7 @@ class MedicamentoRepository @Inject constructor(
 
     private fun <T> mapRemote(block: () -> T): T = try {
         block()
-    } catch (error: Exception) {
+    } catch (error: IllegalArgumentException) {
         throw InvalidRemoteResponseException(error)
     }
 }

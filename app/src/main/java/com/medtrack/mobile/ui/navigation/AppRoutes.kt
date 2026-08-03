@@ -27,10 +27,14 @@ object AppRoutes {
 
         companion object {
             fun parse(medicationId: Long?, date: String?, time: String?): Dose? {
-                if (medicationId == null || medicationId <= 0 || date == null || time == null) return null
-                if (runCatching { LocalDate.parse(date) }.isFailure) return null
-                if (runCatching { LocalTime.parse(time) }.isFailure) return null
-                return Dose(medicationId, date, time)
+                val validId = medicationId?.takeIf { it > 0 }
+                val validDate = date?.takeIf { runCatching { LocalDate.parse(it) }.isSuccess }
+                val validTime = time?.takeIf { runCatching { LocalTime.parse(it) }.isSuccess }
+                return if (validId != null && validDate != null && validTime != null) {
+                    Dose(validId, validDate, validTime)
+                } else {
+                    null
+                }
             }
         }
     }

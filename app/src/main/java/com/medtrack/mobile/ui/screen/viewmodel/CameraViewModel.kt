@@ -102,10 +102,10 @@ class CameraViewModel @Inject constructor(
     }
 
     private fun savedDose(): SelectedDose? {
-        val id = savedStateHandle.get<Long>(KEY_MEDICATION_ID) ?: return null
-        val date = savedStateHandle.get<String>(KEY_DATE) ?: return null
-        val time = savedStateHandle.get<String>(KEY_TIME) ?: return null
-        return SelectedDose(id, date, time)
+        val id = savedStateHandle.get<Long>(KEY_MEDICATION_ID)
+        val date = savedStateHandle.get<String>(KEY_DATE)
+        val time = savedStateHandle.get<String>(KEY_TIME)
+        return if (id != null && date != null && time != null) SelectedDose(id, date, time) else null
     }
 
     private companion object {

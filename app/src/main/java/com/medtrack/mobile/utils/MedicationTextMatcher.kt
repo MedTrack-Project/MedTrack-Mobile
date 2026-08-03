@@ -42,17 +42,16 @@ object MedicationTextMatcher {
         val savedNormalized = normalize(savedValue)
         val capturedNormalized = normalize(capturedValue)
 
-        if (savedNormalized.isBlank() || capturedNormalized.isBlank()) return 0.0
-        if (savedNormalized == capturedNormalized) return 1.0
-        if (savedNormalized.contains(capturedNormalized) ||
-            capturedNormalized.contains(savedNormalized)
-        ) {
-            return 0.92
+        return when {
+            savedNormalized.isBlank() || capturedNormalized.isBlank() -> 0.0
+            savedNormalized == capturedNormalized -> 1.0
+            savedNormalized.contains(capturedNormalized) || capturedNormalized.contains(savedNormalized) -> 0.92
+            else -> {
+                val distance = levenshteinDistance(savedNormalized, capturedNormalized)
+                val maxLength = maxOf(savedNormalized.length, capturedNormalized.length).coerceAtLeast(1)
+                1.0 - (distance.toDouble() / maxLength.toDouble())
+            }
         }
-
-        val distance = levenshteinDistance(savedNormalized, capturedNormalized)
-        val maxLength = maxOf(savedNormalized.length, capturedNormalized.length).coerceAtLeast(1)
-        return 1.0 - (distance.toDouble() / maxLength.toDouble())
     }
 
     private fun normalize(text: String): String {
@@ -71,11 +70,14 @@ object MedicationTextMatcher {
             .trim()
     }
 
-    private fun levenshteinDistance(a: String, b: String): Int {
-        if (a == b) return 0
-        if (a.isEmpty()) return b.length
-        if (b.isEmpty()) return a.length
+    private fun levenshteinDistance(a: String, b: String): Int = when {
+        a == b -> 0
+        a.isEmpty() -> b.length
+        b.isEmpty() -> a.length
+        else -> calculateLevenshteinDistance(a, b)
+    }
 
+    private fun calculateLevenshteinDistance(a: String, b: String): Int {
         val previous = IntArray(b.length + 1) { it }
         val current = IntArray(b.length + 1)
 
