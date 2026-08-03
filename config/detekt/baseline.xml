@@ -2,9 +2,8 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComplexCondition:NotificationReceiver.kt$NotificationReceiver$medicamentoId == -1L || nome == null || horarioOriginal == null || compostoAtivo == null</ID>
-    <ID>ConstructorParameterNaming:ScanDtos.kt$MedicamentoScanDto$val agente_ativo: String?</ID>
-    <ID>FunctionNaming:AppNavigation.kt$@Composable fun AppNavigation()</ID>
+    <ID>ComplexCondition:AppRoutes.kt$AppRoutes.Dose.Companion$medicationId == null || medicationId &lt;= 0 || date == null || time == null</ID>
+    <ID>FunctionNaming:AppNavigation.kt$@Composable fun AppNavigation(cameraController: CameraController)</ID>
     <ID>FunctionNaming:ContentCard.kt$@Composable fun ContentCard(onStartClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:EmptyCard.kt$@Composable fun EmptyCard()</ID>
     <ID>FunctionNaming:EntradaDeTexto.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun EntradaDeTexto( label: String, text: String, onTextChange: (String) -&gt; Unit, isPassword: Boolean = false, isError: Boolean = false, )</ID>
@@ -17,7 +16,7 @@
     <ID>FunctionNaming:MedicamentoImage.kt$@Suppress("DEPRECATION") @Composable private fun ExpandedMedicationImage(bitmap: Bitmap, onDismiss: () -&gt; Unit)</ID>
     <ID>FunctionNaming:OverlayCamera.kt$@Composable fun OverlayCamera(isRectangleDetected: Boolean, framePosition: Rect? = null)</ID>
     <ID>FunctionNaming:StatusCard.kt$@Composable fun StatusCard(medicamento: MedicamentoCapturadoDomain, isSuccess: Boolean)</ID>
-    <ID>FunctionNaming:TelaCamera.kt$@Composable fun TelaCamera( onBackClick: () -&gt; Unit, viewModel: CameraViewModel = hiltViewModel(), connectivityObserver: ConnectivityObserver, )</ID>
+    <ID>FunctionNaming:TelaCamera.kt$@Composable fun TelaCamera( onBackClick: () -&gt; Unit, viewModel: CameraViewModel, cameraController: CameraController, connectivityObserver: ConnectivityObserver, )</ID>
     <ID>FunctionNaming:TelaConfirmacao.kt$@Composable fun TelaConfirmacao( cameraViewModel: CameraViewModel, medicamentoViewModel: MedicamentoViewModel, onConfirmSuccess: () -&gt; Unit, onRetakePhoto: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:TelaDoseHorario.kt$@Composable fun TelaDoseHorario( medicamentoId: Long, data: String, horario: String, onBackClick: () -&gt; Unit, onScanClick: () -&gt; Unit, viewModel: DoseHorarioViewModel = hiltViewModel(), )</ID>
     <ID>FunctionNaming:TelaDoseHorario.kt$@Composable private fun DoseContent(medicamento: MedicamentoDomain, horario: String, status: DoseStatus, onScanClick: () -&gt; Unit)</ID>
@@ -25,33 +24,34 @@
     <ID>FunctionNaming:TelaDoseHorario.kt$@Composable private fun LoadingDose()</ID>
     <ID>FunctionNaming:TelaEsqueciSenha.kt$@Composable fun TelaEsqueciSenha(onEmailSent: () -&gt; Unit, onBackToLogin: () -&gt; Unit)</ID>
     <ID>FunctionNaming:TelaInicial.kt$@Composable fun TelaInicial(onStartClick: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:TelaLogin.kt$@Composable fun LoginContent(state: LoginUiState, onIntent: (LoginIntent) -&gt; Unit, onForgotPasswordClick: () -&gt; Unit)</ID>
     <ID>FunctionNaming:TelaLogin.kt$@Composable fun TelaLogin(loginViewModel: LoginViewModel, onLoginSuccess: () -&gt; Unit, onForgotPasswordClick: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:TelaPrincipal.kt$@Composable fun PrincipalContent(state: LoginUiState, onHorarioClick: (MedicationItem) -&gt; Unit)</ID>
     <ID>FunctionNaming:TelaPrincipal.kt$@Composable fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationItem) -&gt; Unit)</ID>
     <ID>FunctionNaming:TelaRedefinirSenha.kt$@Composable fun TelaRedefinirSenha(onPasswordReset: () -&gt; Unit)</ID>
     <ID>FunctionNaming:Theme.kt$@Composable fun PIEC1Theme( darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = false, content: @Composable () -&gt; Unit, )</ID>
-    <ID>LongMethod:AppNavigation.kt$@Composable fun AppNavigation()</ID>
-    <ID>LongMethod:Migrations.kt$&lt;no name provided&gt;$override fun migrate(db: SupportSQLiteDatabase)</ID>
-    <ID>LongMethod:NotificationReceiver.kt$NotificationReceiver$override fun onReceive(context: Context, intent: Intent)</ID>
+    <ID>InstanceOfCheckForException:RemoteCallExecutor.kt$RemoteCallExecutor$error is MalformedJsonException</ID>
+    <ID>LongMethod:AppNavigation.kt$@Composable fun AppNavigation(cameraController: CameraController)</ID>
     <ID>LongMethod:OverlayCamera.kt$@Composable fun OverlayCamera(isRectangleDetected: Boolean, framePosition: Rect? = null)</ID>
-    <ID>LongMethod:TelaCamera.kt$@Composable fun TelaCamera( onBackClick: () -&gt; Unit, viewModel: CameraViewModel = hiltViewModel(), connectivityObserver: ConnectivityObserver, )</ID>
+    <ID>LongMethod:TelaCamera.kt$@Composable fun TelaCamera( onBackClick: () -&gt; Unit, viewModel: CameraViewModel, cameraController: CameraController, connectivityObserver: ConnectivityObserver, )</ID>
     <ID>LongMethod:TelaConfirmacao.kt$@Composable fun TelaConfirmacao( cameraViewModel: CameraViewModel, medicamentoViewModel: MedicamentoViewModel, onConfirmSuccess: () -&gt; Unit, onRetakePhoto: () -&gt; Unit, )</ID>
     <ID>LongMethod:TelaDoseHorario.kt$@Composable private fun DoseContent(medicamento: MedicamentoDomain, horario: String, status: DoseStatus, onScanClick: () -&gt; Unit)</ID>
     <ID>LongMethod:TelaEsqueciSenha.kt$@Composable fun TelaEsqueciSenha(onEmailSent: () -&gt; Unit, onBackToLogin: () -&gt; Unit)</ID>
-    <ID>LongMethod:TelaLogin.kt$@Composable fun TelaLogin(loginViewModel: LoginViewModel, onLoginSuccess: () -&gt; Unit, onForgotPasswordClick: () -&gt; Unit)</ID>
-    <ID>LongMethod:TelaPrincipal.kt$@Composable fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationItem) -&gt; Unit)</ID>
+    <ID>LongMethod:TelaLogin.kt$@Composable fun LoginContent(state: LoginUiState, onIntent: (LoginIntent) -&gt; Unit, onForgotPasswordClick: () -&gt; Unit)</ID>
+    <ID>LongMethod:TelaPrincipal.kt$@Composable fun PrincipalContent(state: LoginUiState, onHorarioClick: (MedicationItem) -&gt; Unit)</ID>
     <ID>LongMethod:TelaRedefinirSenha.kt$@Composable fun TelaRedefinirSenha(onPasswordReset: () -&gt; Unit)</ID>
-    <ID>MaxLineLength:TelaCamera.kt$text = "Deseja salvar a foto do medicamento para processar automaticamente quando o Wi-Fi voltar?"</ID>
-    <ID>PrintStackTrace:MainActivity.kt$MainActivity$e</ID>
+    <ID>ReturnCount:AppRoutes.kt$AppRoutes.Dose.Companion$fun parse(medicationId: Long?, date: String?, time: String?): Dose?</ID>
+    <ID>ReturnCount:CameraViewModel.kt$CameraViewModel$private fun savedDose(): SelectedDose?</ID>
+    <ID>ReturnCount:DoseHorarioViewModel.kt$DoseHorarioViewModel$private fun savedRequest(): DoseHorarioIntent.Load?</ID>
     <ID>ReturnCount:MedicationTextMatcher.kt$MedicationTextMatcher$private fun levenshteinDistance(a: String, b: String): Int</ID>
     <ID>ReturnCount:MedicationTextMatcher.kt$MedicationTextMatcher$private fun similarity(savedValue: String, capturedValue: String): Double</ID>
+    <ID>ReturnCount:NotificationReceiver.kt$NotificationPayload.Companion$fun fromIntent(intent: Intent): NotificationPayload?</ID>
+    <ID>ReturnCount:NotificationWorker.kt$NotificationWorker$override fun doWork(): Result</ID>
+    <ID>SpreadOperator:AppDatabase.kt$AppDatabase.Companion$(*SUPPORTED_MIGRATIONS)</ID>
     <ID>SwallowedException:DateUtils.kt$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:CameraService.kt$CameraService$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:CameraViewModel.kt$CameraViewModel$e: Exception</ID>
+    <ID>ThrowsCount:RemoteCallExecutor.kt$RemoteCallExecutor$suspend fun &lt;T : Any&gt; execute(call: suspend () -&gt; Response&lt;T&gt;): T</ID>
     <ID>TooGenericExceptionCaught:DateUtils.kt$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DoseHorarioViewModel.kt$DoseHorarioViewModel$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:LoginViewModel.kt$LoginViewModel$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:MainActivity.kt$MainActivity$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:MedicamentoViewModel.kt$MedicamentoViewModel$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:ScanUpload.kt$ScanUpload$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MedicamentoRepository.kt$MedicamentoRepository$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:MedicamentoViewModel.kt$MedicamentoViewModel$error: Exception</ID>
   </CurrentIssues>
 </SmellBaseline>

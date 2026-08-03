@@ -1,6 +1,5 @@
 package com.medtrack.mobile.data.repository
 
-import android.net.Uri
 import com.medtrack.mobile.data.local.daos.ScanQueueDao
 import com.medtrack.mobile.data.local.entity.ScanQueueItem
 import com.medtrack.mobile.data.local.entity.ScanQueueStatus
@@ -13,12 +12,14 @@ import com.medtrack.mobile.domain.model.PendingScan
 import com.medtrack.mobile.domain.repository.OfflineScanRepository
 import com.medtrack.mobile.domain.time.AppClock
 import java.io.File
+import java.net.URI
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.withContext
 
 @Singleton
+@Suppress("TooManyFunctions") // A classe implementa os contratos de scan online e fila offline.
 class ScanRepository @Inject constructor(
     private val remote: ScanRemoteSource,
     private val scanQueueDao: ScanQueueDao,
@@ -87,25 +88,31 @@ class ScanRepository @Inject constructor(
         }
     }
 
-    private fun ImageReference.asFile(): File = Uri.parse(value).path?.let(::File) ?: File(value)
+    private fun ImageReference.asFile(): File = runCatching {
+        URI(value).takeIf { it.scheme == "file" }?.let(::File)
+    }.getOrNull() ?: File(value)
 
     private fun ImageReference.idempotencyKey(): String {
         val file = asFile()
         val digest = MessageDigest.getInstance("SHA-256")
         if (file.isFile) {
-            file.inputStream().buffered().use { input ->
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read <= 0) break
-                    digest.update(buffer, 0, read)
-                }
-            }
+            digest.updateFrom(file)
         } else {
             digest.update(value.toByteArray())
         }
         return digest.digest()
             .joinToString("") { "%02x".format(it) }
+    }
+
+    private fun MessageDigest.updateFrom(file: File) {
+        file.inputStream().buffered().use { input ->
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var read = input.read(buffer)
+            while (read > 0) {
+                update(buffer, 0, read)
+                read = input.read(buffer)
+            }
+        }
     }
 
     private fun ScanQueueItem.toDomain() = PendingScan(

@@ -44,6 +44,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("TooManyFunctions") // Hilt requer um método declarativo por binding explícito.
 abstract class RepositoryModule {
 
     @Binds

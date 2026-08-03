@@ -1,7 +1,11 @@
 package com.medtrack.mobile.ui.screen
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.isHeading
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.medtrack.mobile.domain.model.MedicamentoCapturadoDomain
 import com.medtrack.mobile.domain.model.Usuario
@@ -26,6 +30,9 @@ class CriticalFlowsComposeTest {
             }
         }
         composeRule.onNodeWithText("Usuario ou senha invalidos").assertIsDisplayed()
+        composeRule.onNode(isHeading() and androidx.compose.ui.test.hasText("Entrar")).assertIsDisplayed()
+        composeRule.onNode(hasContentDescription("MedTrack")).assertIsDisplayed()
+        composeRule.onNode(hasClickAction() and androidx.compose.ui.test.hasText("Entrar")).assertIsNotEnabled()
     }
 
     @Test
@@ -58,5 +65,20 @@ class CriticalFlowsComposeTest {
             }
         }
         composeRule.onNodeWithText("Nome: Losartana").assertIsDisplayed()
+    }
+
+    @Test
+    fun confirmationFailureDisplaysActionableGuidance() {
+        composeRule.setContent {
+            PIEC1Theme {
+                StatusCard(
+                    medicamento = MedicamentoCapturadoDomain("", "", "", "", ""),
+                    isSuccess = false,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Falha na Identificação").assertIsDisplayed()
+        composeRule.onNodeWithText("Dica: Tente focar melhor o texto e evite reflexos.").assertIsDisplayed()
     }
 }

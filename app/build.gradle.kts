@@ -205,6 +205,17 @@ tasks.withType<Detekt>().configureEach {
 }
 
 kover {
+    currentProject {
+        createVariant("criticalUseCases") {
+            add("debug")
+        }
+        createVariant("criticalRepositories") {
+            add("debug")
+        }
+        createVariant("criticalViewModels") {
+            add("debug")
+        }
+    }
     reports {
         filters {
             excludes {
@@ -238,9 +249,44 @@ kover {
             }
         }
         verify {
-            rule("Baseline global inicial") {
-                // Gate conservador sobre todo o código de produção. Deve subir sem novas exclusões.
-                minBound(5)
+            rule("Cobertura global incremental") {
+                minBound(20)
+            }
+        }
+        variant("criticalUseCases") {
+            filters {
+                includes {
+                    packages("com.medtrack.mobile.domain.usecase")
+                }
+            }
+            verify {
+                rule("Casos de uso criticos") {
+                    minBound(75)
+                }
+            }
+        }
+        variant("criticalRepositories") {
+            filters {
+                includes {
+                    packages("com.medtrack.mobile.data.repository")
+                }
+            }
+            verify {
+                rule("Repositories criticos") {
+                    minBound(65)
+                }
+            }
+        }
+        variant("criticalViewModels") {
+            filters {
+                includes {
+                    packages("com.medtrack.mobile.ui.screen.viewmodel")
+                }
+            }
+            verify {
+                rule("ViewModels criticos") {
+                    minBound(50)
+                }
             }
         }
     }

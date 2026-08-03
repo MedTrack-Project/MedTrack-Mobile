@@ -20,7 +20,10 @@ import java.net.URL
 import java.time.LocalDate
 
 object NotificationHelper {
+    const val CHANNEL_ID = "medicamento_channel"
+    const val NOTIFICATION_VISIBILITY = NotificationCompat.VISIBILITY_PRIVATE
 
+    @Suppress("LongParameterList") // Mantém compatibilidade com callers de alarmes e WorkManager.
     fun showNotification(
         context: Context,
         medicamentoId: Long,
@@ -59,7 +62,7 @@ object NotificationHelper {
             .setBigContentTitle("Hora do remedio!")
             .setSummaryText("MedTrack - Lembrete")
 
-        val builder = NotificationCompat.Builder(context, "medicamento_channel")
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("Hora do remedio: $nome")
             .setContentText("Horario: $horarioFormatado")
             .setSmallIcon(R.drawable.medtrack_white_icon)
@@ -71,7 +74,7 @@ object NotificationHelper {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
-            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setVisibility(NOTIFICATION_VISIBILITY)
         if (urgent && NotificationManagerCompat.from(context).canUseFullScreenIntent()) {
             builder.setFullScreenIntent(pendingIntent, true)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
@@ -86,7 +89,7 @@ object NotificationHelper {
 
     fun createNotificationChannel(context: Context) {
         val channel = NotificationChannel(
-            "medicamento_channel",
+            CHANNEL_ID,
             "Lembretes de Medicamentos",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
