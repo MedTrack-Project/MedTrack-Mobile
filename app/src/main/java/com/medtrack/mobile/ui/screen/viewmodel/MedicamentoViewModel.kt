@@ -3,6 +3,7 @@ package com.medtrack.mobile.ui.screen.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medtrack.mobile.domain.error.ConfirmationAlreadyExistsException
+import com.medtrack.mobile.domain.error.DomainException
 import com.medtrack.mobile.domain.error.DoseOutsideAllowedTimeException
 import com.medtrack.mobile.domain.error.InvalidSessionException
 import com.medtrack.mobile.domain.error.MedicationNotFoundException
@@ -34,6 +35,8 @@ class MedicamentoViewModel @Inject constructor(private val confirmMedication: Co
         }
     }
 
+    // Boundary de UI: falhas inesperadas devem virar estado de erro, não encerrar o app.
+    @Suppress("TooGenericExceptionCaught")
     private fun confirm(command: ConfirmationCommand) {
         if (confirmationJob?.isActive == true) return
         confirmationJob = viewModelScope.launch {
@@ -42,8 +45,10 @@ class MedicamentoViewModel @Inject constructor(private val confirmMedication: Co
                 confirmMedication(command)
                 _uiState.value = MedicamentoUiState.Success
                 _events.emit(MedicamentoEvent.Confirmed)
-            } catch (error: Exception) {
+            } catch (error: DomainException) {
                 _uiState.value = MedicamentoUiState.Error(error.toUserMessage())
+            } catch (_: Exception) {
+                _uiState.value = MedicamentoUiState.Error("Erro ao confirmar. Tente novamente.")
             }
         }
     }
@@ -65,7 +70,7 @@ sealed interface MedicamentoEvent {
     data object Confirmed : MedicamentoEvent
 }
 
-private fun Exception.toUserMessage(): String = when (this) {
+private fun DomainException.toUserMessage(): String = when (this) {
     is InvalidSessionException -> "Sessao expirada. Faca login novamente."
     is MedicationNotFoundException -> "Medicamento nao cadastrado. Cadastre-o primeiro."
     is ConfirmationAlreadyExistsException -> "Ja existe uma confirmacao para este horario."

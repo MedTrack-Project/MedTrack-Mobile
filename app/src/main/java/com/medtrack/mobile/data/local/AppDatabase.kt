@@ -42,7 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "app_database_db",
             )
-                .addMigrations(*SUPPORTED_MIGRATIONS)
+                .addMigrations(MIGRATION_8_9, MIGRATION_9_10)
                 .fallbackToDestructiveMigration(false)
                 .build()
             INSTANCE = instance

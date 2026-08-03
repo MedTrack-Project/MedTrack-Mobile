@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 
+@Suppress("LongMethod") // O Canvas representa uma única operação de desenho e compartilha o mesmo DrawScope.
 @Composable
 fun OverlayCamera(isRectangleDetected: Boolean, framePosition: Rect? = null) {
     val primaryColor = MaterialTheme.colorScheme.primary

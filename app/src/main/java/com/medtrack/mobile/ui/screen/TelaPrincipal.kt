@@ -47,6 +47,7 @@ fun TelaPrincipal(loginViewModel: LoginViewModel, onHorarioClick: (MedicationIte
     PrincipalContent(state, onHorarioClick)
 }
 
+@Suppress("LongMethod") // Cabeçalho e agenda compõem uma única árvore declarativa da tela inicial.
 @Composable
 fun PrincipalContent(state: LoginUiState, onHorarioClick: (MedicationItem) -> Unit) {
     val usuario = state.usuario

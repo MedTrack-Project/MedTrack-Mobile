@@ -47,15 +47,20 @@ data class NotificationPayload(
 
         fun fromIntent(intent: Intent): NotificationPayload? {
             val medicationId = intent.getLongExtra(KEY_MEDICATION_ID, -1)
-            if (medicationId <= 0) return null
-            return NotificationPayload(
-                notificationId = intent.getLongExtra(KEY_NOTIFICATION_ID, medicationId).toInt(),
-                medicationId = medicationId,
-                name = intent.getStringExtra(KEY_NAME) ?: return null,
-                activeIngredient = intent.getStringExtra(KEY_ACTIVE_INGREDIENT).orEmpty(),
-                time = intent.getStringExtra(KEY_TIME) ?: return null,
-                date = intent.getStringExtra(KEY_DATE) ?: LocalDate.now().toString(),
-            )
+            val name = intent.getStringExtra(KEY_NAME)
+            val time = intent.getStringExtra(KEY_TIME)
+            return if (medicationId > 0 && name != null && time != null) {
+                NotificationPayload(
+                    notificationId = intent.getLongExtra(KEY_NOTIFICATION_ID, medicationId).toInt(),
+                    medicationId = medicationId,
+                    name = name,
+                    activeIngredient = intent.getStringExtra(KEY_ACTIVE_INGREDIENT).orEmpty(),
+                    time = time,
+                    date = intent.getStringExtra(KEY_DATE) ?: LocalDate.now().toString(),
+                )
+            } else {
+                null
+            }
         }
     }
 }

@@ -15,20 +15,26 @@ class RemoteCallExecutor @Inject constructor() {
     suspend fun <T : Any> execute(call: suspend () -> Response<T>): T {
         val response = try {
             call()
+        } catch (error: MalformedJsonException) {
+            invalidResponse(error)
         } catch (error: IOException) {
-            if (error is MalformedJsonException || error.cause is MalformedJsonException) {
-                throw InvalidRemoteResponseException(error)
-            }
-            throw NetworkUnavailableException(error)
+            networkUnavailable(error)
         } catch (error: JsonParseException) {
-            throw InvalidRemoteResponseException(error)
+            invalidResponse(error)
         }
 
         return when {
-            response.code() == 401 || response.code() == 403 -> throw InvalidSessionException()
-            response.code() >= 500 -> throw ServerUnavailableException()
-            !response.isSuccessful -> throw RemoteRequestRejectedException(response.code())
-            else -> response.body() ?: throw InvalidRemoteResponseException()
+            response.code() == 401 || response.code() == 403 -> invalidSession()
+            response.code() >= 500 -> serverUnavailable()
+            !response.isSuccessful -> rejected(response.code())
+            else -> response.body() ?: invalidResponse()
         }
     }
+
+    private fun invalidSession(): Nothing = throw InvalidSessionException()
+    private fun serverUnavailable(): Nothing = throw ServerUnavailableException()
+    private fun rejected(statusCode: Int): Nothing = throw RemoteRequestRejectedException(statusCode)
+    private fun invalidResponse(): Nothing = throw InvalidRemoteResponseException()
+    private fun invalidResponse(cause: Throwable): Nothing = throw InvalidRemoteResponseException(cause)
+    private fun networkUnavailable(cause: IOException): Nothing = throw NetworkUnavailableException(cause)
 }

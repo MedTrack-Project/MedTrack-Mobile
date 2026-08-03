@@ -28,6 +28,12 @@ potential-bugs:
   UnsafeCallOnNullableType:
     active: true
 
+naming:
+  FunctionNaming:
+    active: true
+    # Compose exige PascalCase para funções @Composable; o ktlint valida a convenção por anotação.
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+
 style:
   ForbiddenComment:
     active: true

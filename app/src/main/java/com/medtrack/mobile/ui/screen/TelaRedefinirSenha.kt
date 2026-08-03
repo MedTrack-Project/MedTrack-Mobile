@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.medtrack.mobile.R
 import com.medtrack.mobile.ui.components.EntradaDeTexto
 
+@Suppress("LongMethod") // A função descreve uma única árvore declarativa da tela de redefinição.
 @Composable
 fun TelaRedefinirSenha(onPasswordReset: () -> Unit) {
     val codigo = remember { mutableStateOf("") }
