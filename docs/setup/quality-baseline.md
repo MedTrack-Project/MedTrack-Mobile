@@ -45,10 +45,14 @@ Para corrigir somente formatação:
 ```
 
 Para revisar a dívida estática existente, consulte `config/detekt/baseline.xml`. O baseline não
-deve crescer sem justificativa no Pull Request. A meta inicial do Kover é 5% sobre o código de
-produção. O valor é deliberadamente conservador para permitir a adoção do gate sem excluir
-repositories, ViewModels, UI ou infraestrutura. A meta deve subir gradualmente, sem ampliar
-exclusões para obter um percentual artificial.
+deve crescer sem justificativa no Pull Request. A Etapa 6 elevou o gate global do Kover para
+**20%** e adicionou variantes para pacotes críticos: casos de uso **75%**, repositories **65%** e
+ViewModels **50%**. As metas devem subir gradualmente, sem ampliar exclusões para obter um
+percentual artificial.
+
+Os resultados ficam em `app/build/test-results/testDebugUnitTest/` (JUnit XML),
+`app/build/reports/tests/testDebugUnitTest/` (JUnit HTML), `app/build/reports/kover/` (XML e HTML),
+`app/build/reports/lint-results-debug.html` e `app/build/reports/detekt/`.
 
 ## Validação manual desta etapa
 
@@ -69,6 +73,21 @@ Também confirme:
 - os testes JUnit possuem XML em `app/build/test-results`;
 - o APK debug existe em `app/build/outputs/apk/debug`;
 - somente arquivos gerados ignorados aparecem após o build.
+
+## Baseline comparável da Etapa 6 — 03/08/2026
+
+Após a expansão para 78 testes JVM, o relatório sem exclusões funcionais registrou **761 de 3.606
+linhas**, ou **21,1%**. As variantes Kover, que são a fonte dos gates, mediram:
+
+| Escopo | Cobertura | Gate |
+|---|---:|---:|
+| Aplicação | 21,1% | 20% |
+| Casos de uso | 75,9% | 75% |
+| Repositories | 68,3% | 65% |
+| ViewModels | 51,7% | 50% |
+
+Reduzir qualquer gate exige justificativa e aprovação no PR. Repositories ou ViewModels não podem
+ser excluídos integralmente para recuperar percentual.
 
 ## Observações do baseline
 
