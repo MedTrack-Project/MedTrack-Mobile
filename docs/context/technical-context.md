@@ -16,7 +16,6 @@
 - OkHttp
 - Gson
 - CameraX
-- ML Kit
 - WorkManager
 - AlarmManager
 
@@ -44,5 +43,5 @@ Alguns pontos ainda sao pragmaticos e podem evoluir:
 
 - DI esta em `data/di`, embora seja transversal.
 - `StateFlow<UiState>` imutavel e intents formam o padrao de estado dos fluxos principais.
-- Alguns services de dominio ainda dependem de infraestrutura Android, como Workers e Camera.
+- Adapters de infraestrutura Android concentram WorkManager e CameraX fora do domínio.
 - A estrategia offline existe para scan e deve ser expandida para confirmacoes.

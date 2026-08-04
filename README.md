@@ -3,7 +3,7 @@
     <h1>MedTrack: Aplicação Mobile </h1>
 </div>
 
-> Aplicativo Android para controle inteligente de medicação via OCR e notificações
+> Aplicativo Android para controle inteligente de medicação, validação por foto e notificações
 
 ## Visão Geral
 
@@ -11,10 +11,12 @@
   <img src="docs/_assets/app-preview.gif" width="30%" alt="Demonstração do MedTrack">
 </div>
 
-O **MedTrack Mobile** é um app Android desenvolvido para auxiliar no acompanhamento correto de medicamentos, unindo **OCR, notificações e acessibilidade** em um só lugar.
+O **MedTrack Mobile** auxilia o acompanhamento correto de medicamentos, unindo **validação por
+foto, notificações e acessibilidade**. A imagem capturada é enviada à API de scan; o aplicativo não
+executa reconhecimento local.
 
 - 🔔 **Notificações inteligentes**
-- 📸 **Validação por foto** usando tecnologia OCR
+- 📸 **Validação por foto** processada pela API de scan
 - ♿ **Acessibilidade** como prioridade
 
 **Público-alvo:**
@@ -55,17 +57,12 @@ Desenvolvida inteiramente com **Jetpack Compose**, a interface prioriza:
   <img src="docs/_assets/screen-5.jpg" width="30%" alt="Pop-up Sucesso">
 </div>
 
-### 📸 Captura e Reconhecimento (OCR)
-Integramos as poderosas ferramentas do **Google ML Kit (*Text recognition* e *Object detection*)** para:
-- **OCR (Reconhecimento Óptico de Caracteres)** para extrair dados de bulas e caixas de remédio
-- **Detecção de objetos** para identificar medicamentos na câmera
-- Processamento offline para garantir privacidade e disponibilidade
+### 📸 Captura e scan
 
-> 🎥 Demonstração do OCR identificando: nome do medicamento, dosagem e horários
-
-<div align="center">
-  <img src="docs/_assets/ocr-demo.gif" width="30%" alt="Demonstração do OCR">
-</div>
+- CameraX exibe o enquadramento e captura a imagem em armazenamento privado.
+- A API de scan realiza o reconhecimento; ML Kit não é embarcado no APK.
+- Sem rede, WorkManager mantém a captura na fila para processamento posterior.
+- Imagens, tokens e dados clínicos não são escritos em logs.
 
 ### 💾 Armazenamento Local
 Para persistência de dados, utilizamos:
@@ -88,7 +85,7 @@ Integração com o backend através de:
 
 - Retrofit para requisições HTTP
 
-- Moshi para serialização/desserialização JSON
+- Gson para serialização/desserialização JSON
 
 Tratamento robusto de erros e estados de carregamento:
 
@@ -136,8 +133,9 @@ MEDTRACK_API_BASE_URL=http://10.0.2.2:8081/
 MEDTRACK_SCAN_URL=http://10.0.2.2:8000/detect
 ````
 
-Builds de release exigem endpoints HTTPS fornecidos por variáveis de ambiente. Consulte
-`docs/setup/build-release.md`.
+Builds de release exigem tag SemVer, endpoints HTTPS e assinatura fornecidos externamente. Consulte
+[`docs/setup/build-release.md`](docs/setup/build-release.md). Enquanto backend e scan não tiverem
+deploy definitivo, gere apenas o APK fake de validação descrito nessa documentação.
 
 ## 🌐 MedTrack: Versão Web
 
@@ -235,5 +233,4 @@ O **MedTrack Web** é a interface administrativa do sistema, desenvolvida para:
 
 Projeto acadêmico desenvolvido para a disciplina de **Projeto Interdisciplinar de Engenharia da Computação 1 (PIEC1)**  
 Universidade Federal Rural de Pernambuco — Unidade Acadêmica de Belo Jardim (UFRPE/UABJ)
-
 

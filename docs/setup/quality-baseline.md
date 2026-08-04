@@ -155,3 +155,6 @@ Os warnings de bibliotecas nativas (`libandroidx.graphics.path.so`,
 `libimage_processing_util_jni.so`, `libmlkitcommonpipeline.so` e `libsurface_util_jni.so`) indicam
 que o AGP empacotou binários prebuilt sem remover símbolos. Como o artefato validado é debug, isso
 não bloqueia a Etapa 0. Tamanho e stripping do release pertencem à etapa de release hardening.
+
+Na Etapa 7, ML Kit e os módulos CameraX sem uso foram removidos. Os nomes acima permanecem neste
+documento somente como registro histórico do baseline; o APK release deve ser medido novamente.

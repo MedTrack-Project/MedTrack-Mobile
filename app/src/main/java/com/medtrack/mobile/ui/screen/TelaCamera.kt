@@ -1,6 +1,5 @@
 package com.medtrack.mobile.ui.screen
 
-import android.graphics.Rect
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -28,9 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,16 +62,9 @@ fun TelaCamera(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember { PreviewView(context) }
-    var framePosition by remember { mutableStateOf<Rect?>(null) }
-    var rectangleDetected by remember { mutableStateOf(false) }
 
     DisposableEffect(previewView, lifecycleOwner) {
-        cameraController.startCamera(previewView, lifecycleOwner) { detected, bounds ->
-            previewView.post {
-                rectangleDetected = detected
-                framePosition = bounds
-            }
-        }
+        cameraController.startCamera(previewView, lifecycleOwner)
         onDispose { }
     }
     LaunchedEffect(viewModel, cameraController) {
@@ -92,7 +82,7 @@ fun TelaCamera(
 
     Box(Modifier.fillMaxSize()) {
         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-        OverlayCamera(rectangleDetected, framePosition)
+        OverlayCamera()
         IconButton(
             onClick = onBackClick,
             modifier = Modifier.padding(
@@ -103,20 +93,14 @@ fun TelaCamera(
         Box(
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 60.dp).size(80.dp)
                 .background(
-                    if (rectangleDetected) {
-                        MaterialTheme.colorScheme.primary.copy(
-                            alpha = .3f,
-                        )
-                    } else {
-                        Color.White.copy(alpha = .2f)
-                    },
+                    MaterialTheme.colorScheme.primary.copy(alpha = .3f),
                     CircleShape,
                 )
                 .semantics {
                     role = Role.Button
                     contentDescription = "Capturar medicamento"
                 }
-                .clickable(enabled = rectangleDetected && !state.isLoading) {
+                .clickable(enabled = !state.isLoading) {
                     viewModel.onIntent(CameraIntent.RequestCapture(isWifi))
                 },
             contentAlignment = Alignment.Center,
@@ -124,7 +108,7 @@ fun TelaCamera(
             Surface(
                 modifier = Modifier.size(60.dp),
                 shape = CircleShape,
-                color = if (rectangleDetected) MaterialTheme.colorScheme.primary else Color.White,
+                color = MaterialTheme.colorScheme.primary,
                 border = BorderStroke(4.dp, Color.Black.copy(alpha = .1f)),
             ) {}
         }
