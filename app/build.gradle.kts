@@ -293,7 +293,6 @@ detekt {
     buildUponDefaultConfig = true
     allRules = false
     config.setFrom(rootProject.files("config/detekt/detekt.yml"))
-    baseline = rootProject.file("config/detekt/baseline.xml")
 }
 
 tasks.withType<Detekt>().configureEach {
