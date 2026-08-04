@@ -45,9 +45,10 @@
 ## Testes
 
 - Toda nova implementacao mobile deve incluir testes relacionados quando houver regra, mapper, ViewModel, Repository ou persistencia alterada.
-- O comando minimo antes de abrir PR e `./gradlew test`.
+- O gate mínimo antes de abrir PR é `./gradlew qualityCheck`.
 - A metrica de cobertura dos testes unitarios deve ser gerada com Kover usando `./gradlew :app:koverHtmlReportDebug :app:koverXmlReportDebug` quando solicitada.
-- O relatorio Kover atual mede o escopo unitario: dominio, mappers, utilitarios puros e ViewModels testaveis com fakes. UI Compose, Room/DAO, Camera, notificacoes, Hilt e repositories concretos ficam fora dessa metrica ate a etapa de testes instrumentados/integracao.
+- O relatório Kover mede testes JVM; a cobertura instrumentada de UI Compose, Room/DAO, câmera,
+  notificações e integrações Android é validada separadamente e não entra nesse percentual.
 - Testes unitarios ficam em `app/src/test/` e nao devem depender de backend, internet ou Android Framework.
 - Testes instrumentados ficam em `app/src/androidTest/` e devem ser usados para Room, DAO, migrations e comportamentos que dependem do Android.
 

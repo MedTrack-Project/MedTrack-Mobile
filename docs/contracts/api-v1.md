@@ -1,6 +1,6 @@
 # Contratos HTTP consumidos pelo aplicativo
 
-Este documento congela o contrato esperado pelo aplicativo na Etapa 4. Alteracoes incompatíveis no
+Este documento congela o contrato HTTP v1 esperado pelo aplicativo. Alteracoes incompatíveis no
 backend ou no servico de IA exigem nova versao deste documento, fixtures atualizadas e contract tests.
 
 | Operacao | Metodo e path | Autenticacao | Corpo/resposta | Compatibilidade |
@@ -18,7 +18,7 @@ backend ou no servico de IA exigem nova versao deste documento, fixtures atualiz
   distintos. Mensagens de infraestrutura nao chegam diretamente a UI.
 - O cliente adiciona `Authorization: Bearer <token>` centralmente, exceto no login.
 - O host do scan continua validado e injetado por ambiente; nenhuma fixture executa chamadas externas.
-- Gson permanece como serializer nesta etapa. Nomes divergentes, como `agente_ativo`, usam
+- Gson é o serializer atual. Nomes divergentes, como `agente_ativo`, usam
   `@SerializedName` e nao contaminam modelos de dominio.
 
 Fixtures aprovadas ficam em `app/src/test/resources/contracts/v1`.

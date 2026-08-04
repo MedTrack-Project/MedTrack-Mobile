@@ -8,8 +8,12 @@ Esta pasta centraliza o contexto tecnico e arquitetural do aplicativo Android Me
 - `context/`: contexto de produto, stack, convencoes, glossario e premissas tecnicas.
 - `decisions/`: ADRs, ou registros de decisoes arquiteturais.
 - `setup/`: preparacao local, build, release e geracao de APK.
+- `release/`: hardening, publicação, rollback e revogação.
+- `governance/`: regras administrativas e operação do repositório.
+- `security/`: ambientes, rede, segredos e privacidade.
+- `testing/`: estratégia, pirâmide e execução dos testes.
 - `tasks/`: tarefas em andamento, template e historico.
-- `_assets/`: imagens e midias usadas pela documentacao e pelo README principal.
+- `_assets/`: mídia histórica; não usar no README principal ou em nova documentação sem revisão.
 
 ## Como usar
 

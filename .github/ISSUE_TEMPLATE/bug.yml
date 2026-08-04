@@ -1,0 +1,59 @@
+name: Relatar problema
+description: Registre um comportamento incorreto sem incluir dados pessoais ou credenciais.
+title: "fix: "
+labels: [bug, triage]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Não inclua tokens, endpoints privados, imagens de medicamentos ou dados reais de pacientes.
+              Vulnerabilidades devem ser reportadas pelo canal privado exibido no seletor de issues.
+    - type: textarea
+      id: description
+      attributes:
+          label: Descrição
+          description: O que ocorreu e qual era o comportamento esperado?
+      validations:
+          required: true
+    - type: textarea
+      id: reproduction
+      attributes:
+          label: Reprodução
+          description: Use dados sintéticos e passos mínimos.
+          placeholder: |
+              1. Abra...
+              2. Toque em...
+              3. Observe...
+      validations:
+          required: true
+    - type: input
+      id: version
+      attributes:
+          label: Versão ou commit
+          placeholder: v1.2.3 ou SHA
+      validations:
+          required: true
+    - type: dropdown
+      id: api
+      attributes:
+          label: Android API
+          options:
+              - API 26-28
+              - API 29-32
+              - API 33-35
+              - API 36+
+              - Não se aplica
+      validations:
+          required: true
+    - type: textarea
+      id: evidence
+      attributes:
+          label: Evidências sanitizadas
+          description: Logs mínimos ou screenshots sem dados sensíveis.
+    - type: checkboxes
+      id: safety
+      attributes:
+          label: Privacidade
+          options:
+              - label: Removi credenciais, tokens, imagens e dados pessoais das evidências.
+                required: true

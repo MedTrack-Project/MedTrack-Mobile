@@ -23,7 +23,8 @@
 
 - Room
 - SQLite
-- SharedPreferences privado para token JWT, excluido de backup; migracao para Keystore planejada
+- SharedPreferences privado com JWT cifrado por chave não exportável do Android Keystore e excluído
+  de backup
 - Gson
 
 ## Rede

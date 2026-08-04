@@ -1,236 +1,189 @@
-<div align="center" justify="center">
-    <img width="15%" src="docs/_assets/logo-medtrack.png" alt="Logo do MedTrack"> 
-    <h1>MedTrack: Aplicação Mobile </h1>
-</div>
+# MedTrack Mobile
 
-> Aplicativo Android para controle inteligente de medicação, validação por foto e notificações
+Aplicativo Android nativo para acompanhamento de medicamentos, lembretes de dose e validação por
+foto. CameraX captura a imagem e a API de scan realiza o reconhecimento; quando não há conexão, o
+WorkManager mantém o envio na fila.
 
-## Visão Geral
+O repositório possui gates de qualidade, testes e entrega automatizada. Os endpoints definitivos do
+backend e do scan ainda não estão disponíveis; builds debug podem usar serviços locais. Um APK
+release somente pode ser publicado após a configuração dos serviços e a aprovação do environment
+`production`.
 
-<div align="center">
-  <img src="docs/_assets/app-preview.gif" width="30%" alt="Demonstração do MedTrack">
-</div>
+## Stack
 
-O **MedTrack Mobile** auxilia o acompanhamento correto de medicamentos, unindo **validação por
-foto, notificações e acessibilidade**. A imagem capturada é enviada à API de scan; o aplicativo não
-executa reconhecimento local.
+- Kotlin, Coroutines e Flow;
+- Jetpack Compose e Material 3;
+- MVVM/UDF com casos de uso e domínio independente de Android;
+- Hilt e KSP;
+- Room;
+- Retrofit, OkHttp e Gson;
+- CameraX;
+- WorkManager e AlarmManager;
+- Gradle Kotlin DSL com Version Catalog.
 
-- 🔔 **Notificações inteligentes**
-- 📸 **Validação por foto** processada pela API de scan
-- ♿ **Acessibilidade** como prioridade
+Consulte [stack](docs/context/stack.md) e [visão geral da arquitetura](docs/architecture/overview.md)
+para mais contexto.
 
-**Público-alvo:**
-- 👴 Idosos e pacientes com muitos rémedios que dificulte a organização
-- 🧑‍⚕️ Cuidadores e familiares para monitoramento
+## Pré-requisitos
 
-## ✨ Destaques Técnicos
+- Git;
+- JDK 21;
+- Android SDK com `compileSdk` 37 e platform tools;
+- Android Studio compatível com AGP 9.2.1 e Kotlin 2.3.21;
+- dispositivo ou emulador com Android 8.0/API 26 ou superior.
 
-### 🏗️ Arquitetura do Projeto
-O MedTrack foi desenvolvido seguindo os princípios do **MVVM (Model-View-ViewModel)** para garantir uma separação clara de responsabilidades e facilitar a manutenção do código. Utilizamos componentes modernos do Android Jetpack como:
-- ViewModel para gerenciamento de dados da UI
-- StateFlow imutável e UDF para atualizações reativas
-- Coroutines para operações assíncronas
+Use sempre o Gradle Wrapper versionado; não é necessário instalar Gradle globalmente.
 
-<div align="center">
-  <img src="docs/_assets/mvvm-diagram.png" width="100%" alt="Diagrama MVVM">
-</div>
+## Configuração local
 
-### 🎨 Interface Gráfica
-Desenvolvida inteiramente com **Jetpack Compose**, a interface prioriza:
-- Design moderno e intuitivo
-- Acessibilidade
+Clone o repositório e crie a configuração local:
 
-> ⏰ **Lista inteligente de horários**  
-> - 💊 Contínuo (emoji de infinito 🔄)  
-> - ⏳ Temporário (emoji de calendário 📅)
-
-<div align="center">
-  <img src="docs/_assets/screen-3.jpg" width="30%" alt="Lista de horários vazia">
-  <img src="docs/_assets/screen-4.jpg" width="30%" alt="Lista de horários completa">
-</div>
-
-> 💡 **Pop-ups intuitivos**
-
-<div align="center">
-  <img src="docs/_assets/screen-2.jpg" width="30%" alt="Pop-up Editar">
-  <img src="docs/_assets/screen-1.jpg" width="30%" alt="Pop-up Erro">
-  <img src="docs/_assets/screen-5.jpg" width="30%" alt="Pop-up Sucesso">
-</div>
-
-### 📸 Captura e scan
-
-- CameraX exibe o enquadramento e captura a imagem em armazenamento privado.
-- A API de scan realiza o reconhecimento; ML Kit não é embarcado no APK.
-- Sem rede, WorkManager mantém a captura na fila para processamento posterior.
-- Imagens, tokens e dados clínicos não são escritos em logs.
-
-### 💾 Armazenamento Local
-Para persistência de dados, utilizamos:
-- **Room Database** como camada de abstração sobre SQLite
-- Armazenamento seguro de informações sensíveis
-- Sincronização eficiente com o backend
-
-```kotlin
-@Database(
-    entities = [Usuario::class, Medicamento::class, Notificacao::class, Confirmacao::class],
-    version = 4
-)
-    abstract class AppDatabase : RoomDatabase() {
-    abstract fun medicineDao(): MedicineDao
-}
-````
-
-### 🌐 Comunicação com API
-Integração com o backend através de:
-
-- Retrofit para requisições HTTP
-
-- Gson para serialização/desserialização JSON
-
-Tratamento robusto de erros e estados de carregamento:
-
-````kotlin
-interface ApiService {
-
-    @POST("auth/mobile/login")
-    suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
-
-    @GET("usuario/mobile")
-    suspend fun getUsuario(@Header("Authorization") token: String): Response<Usuario>
-
-    @GET("medicamento/mobile/lista")
-    suspend fun getMedicamentos(@Header("Authorization") token: String): Response<List<Medicamento>>
-
-    @POST("/api/confirmacao")
-    suspend fun confirmarMedicamento(
-        @Header("Authorization") token: String,
-        @Body request: DadosConfirmacaoRequest
-    )
-
-}
-````
-
-### 🔧 Outras Bibliotecas
-
-- AlarmManager para agendamento de notificações
-- Material3 para componentes UI modernos
-
-## 🚀 Como Executar
-
-1. **Pré-requisitos**:
-    - Android Studio Giraffe+
-    - Dispositivo/emulador com Android 9+
-
-2. **Configuração**:
-    - Clonar repositório
 ```bash
-git clone https://github.com/seu-usuario/medtrack-mobile.git
-````
-> Configure os endpoints em `local.properties` para desenvolvimento:
+git clone https://github.com/MedTrack-Project/MedTrack-Mobile.git
+cd MedTrack-Mobile
+cp local.properties.example local.properties
+```
+
+As propriedades esperadas são:
 
 ```properties
-MEDTRACK_API_BASE_URL=http://10.0.2.2:8081/
-MEDTRACK_SCAN_URL=http://10.0.2.2:8000/detect
-````
+MEDTRACK_API_BASE_URL=<url-base-do-backend>
+MEDTRACK_SCAN_URL=<url-completa-da-api-de-scan>
+```
 
-Builds de release exigem tag SemVer, endpoints HTTPS e assinatura fornecidos externamente. Consulte
-[`docs/setup/build-release.md`](docs/setup/build-release.md). Enquanto backend e scan não tiverem
-deploy definitivo, gere apenas o APK fake de validação descrito nessa documentação.
+`MEDTRACK_API_BASE_URL` deve terminar com `/`. Debug aceita HTTP somente para `localhost` e
+`10.0.2.2`; os releases aceitam apenas HTTPS. Credenciais e tokens nunca pertencem a esses campos.
 
-## 🌐 MedTrack: Versão Web
+As regras completas de precedência, rede e configuração estão em:
 
-<div align="center">
-  <a href="https://github.com/EllenRocha1/MedTrack" target="_blank">
-    <img src="https://img.shields.io/badge/🔗_Acessar_Repositório-181717?style=for-the-badge&logo=github" alt="Repositório Web">
-  </a>
-</div>
+- [setup local](docs/setup/local-setup.md);
+- [ambientes e segurança de rede](docs/security/environment-and-network.md);
+- [contrato das APIs](docs/contracts/api-v1.md).
 
-### Plataforma Complementar
-O **MedTrack Web** é a interface administrativa do sistema, desenvolvida para:
+## Build e execução
 
-- 👩‍⚕️ **Profissionais de saúde** gerenciarem pacientes
-- 👨‍👩‍👧 **Familiares** acompanharem a medicação remota
-- 📊 Visualização de relatórios e histórico completo
+No Linux/macOS:
 
-<div align="center">
-  <img src="docs/_assets/medtrack-web.png" width="100%" alt="Dashboard Web">
-</div>
+```bash
+./gradlew assembleDebug
+```
 
-### Integração Mobile-Web
-- 🔄 Sincronização em tempo real dos dados de medicação
-- 🔐 Autenticação unificada JWT
-- 📩 Notificações complementares via email
+No Windows:
 
-## 🌟 Time de Contribuidores
+```powershell
+.\gradlew.bat assembleDebug
+```
 
-<div align="center">
+O APK debug fica em `app/build/outputs/apk/debug/app-debug.apk`. Abra o projeto no Android Studio,
+selecione o módulo `app` e execute em um dispositivo ou emulador.
 
-<table>
-  <tr>
-    <td align="center">
-        <img src="https://github.com/EllenRocha1.png" width="100px;" alt="Ellen Rocha"/><br />
-        <sub><b>Ellen Rocha</b></sub>
-      <br />
-      <a href="https://github.com/EllenRocha1">
-        <img src="https://img.shields.io/badge/-GitHub-181717?style=flat-square&logo=github" />
-      </a>
-      <a href="https://www.linkedin.com/in/ellen-rocha-dev/">
-        <img src="https://img.shields.io/badge/-LinkedIn-0077B5?style=flat-square&logo=linkedin" />
-      </a>
-      <br />
-    </td>
-    <td align="center">
-        <img src="https://github.com/MClaraFerreira5.png" width="100px;" alt="Maria Clara"/><br />
-        <sub><b>Maria Clara</b></sub>
-      <br />
-      <a href="https://github.com/MClaraFerreira5">
-        <img src="https://img.shields.io/badge/-GitHub-181717?style=flat-square&logo=github" />
-      </a>
-      <a href="https://www.linkedin.com/in/clara-ferreira-dev/">
-        <img src="https://img.shields.io/badge/-LinkedIn-0077B5?style=flat-square&logo=linkedin" />
-      </a>
-      <br />
-    </td>
-    <td align="center">
-        <img src="https://github.com/YannLeao.png" width="100px;" alt="Yann Leão"/><br />
-        <sub><b>Yann Leão</b></sub>
-      <br />
-      <a href="https://github.com/YannLeao">
-        <img src="https://img.shields.io/badge/-GitHub-181717?style=flat-square&logo=github" />
-      </a>
-      <a href="https://www.linkedin.com/in/yannleao-dev">
-        <img src="https://img.shields.io/badge/-LinkedIn-0077B5?style=flat-square&logo=linkedin" />
-      </a>
-      <br />
-    </td>
-  </tr>
-</table>
+## Qualidade e testes
 
-</div>
+O gate local principal executa verificação de segredos, KtLint, Detekt, Android Lint, testes
+unitários e limites de cobertura:
 
-## 🎓 Orientação
+```bash
+./gradlew qualityCheck
+```
 
-<div align="center">
+Para a suíte instrumentada:
 
-<table>
-  <tr>
-    <td align="center">
-        <img src="https://github.com/ygoramaral.png" width="100px;" alt="Prof. Igor Amaral"/><br />
-        <sub><b>Prof. Igor Amaral</b></sub>
-      <br />
-      <a href="https://github.com/ygoramaral">
-        <img src="https://img.shields.io/badge/-GitHub-181717?style=flat-square&logo=github" />
-      </a>
-      <br />
-      <code>Orientador</code>
-    </td>
-  </tr>
-</table>
+```bash
+./gradlew connectedDebugAndroidTest
+```
 
-</div>
+Antes de abrir um Pull Request, execute também:
 
-## 📄 Licença
+```bash
+./gradlew assembleDebug
+git diff --check
+```
 
-Projeto acadêmico desenvolvido para a disciplina de **Projeto Interdisciplinar de Engenharia da Computação 1 (PIEC1)**  
-Universidade Federal Rural de Pernambuco — Unidade Acadêmica de Belo Jardim (UFRPE/UABJ)
+Consulte a [estratégia de testes](docs/testing/test-strategy.md) para execução por contexto,
+relatórios, determinismo e gates Kover.
 
+## Arquitetura
+
+O código é organizado em `ui`, `domain`, `data` e `di`:
+
+```text
+Compose -> ViewModel -> Use case -> Repository -> Room/Retrofit/WorkManager
+```
+
+As principais referências são:
+
+- [arquitetura](docs/architecture/overview.md);
+- [camada de UI](docs/architecture/ui-layer.md);
+- [camada de domínio](docs/architecture/domain-layer.md);
+- [camada de dados](docs/architecture/data-layer.md);
+- [integração com APIs](docs/architecture/api-integration.md);
+- [estratégia offline](docs/architecture/offline-first.md);
+- [decisões arquiteturais](docs/decisions/).
+
+## CI/CD e release
+
+Todo Pull Request para `main` executa três checks obrigatórios:
+
+- `Dependency review`;
+- `Quality and debug APK`;
+- `Instrumented tests (API 35)`.
+
+Tags estáveis `vMAJOR.MINOR.PATCH` acionam o workflow de release. O job aguarda aprovação do
+environment `production`, valida endpoints/secrets, gera APK assinado e minificado, confere tamanho e
+assinatura, produz SBOM/checksum, valida os assets baixados e instala o APK em emulador antes de
+publicar apenas o APK e o SHA-256 no GitHub Release.
+
+Enquanto as APIs definitivas não estiverem publicadas, não crie tags estáveis. Para validação local,
+use o APK fake sem publicar descrito em [build e release](docs/setup/build-release.md).
+
+Documentação operacional:
+
+- [geração e verificação de APK](docs/setup/apk-generation.md);
+- [release hardening](docs/release/release-hardening.md);
+- [rollback e revogação](docs/release/rollback-runbook.md);
+- [configuração de governança](docs/governance/repository-settings.md).
+
+## Troubleshooting
+
+### Endpoint rejeitado
+
+Confira HTTPS, barra final da URL base e a precedência descrita no setup. Release rejeita valores
+ausentes, `.invalid`, `localhost`, `10.0.2.2` e HTTP.
+
+### Dispositivo físico não acessa `10.0.2.2`
+
+Esse endereço pertence ao emulador. Use um endpoint HTTPS acessível pelo dispositivo; não amplie
+cleartext sem revisão do Network Security Config.
+
+### Falha de ADB ou instrumentação
+
+Execute `adb devices`, confirme que o dispositivo está autorizado e repita apenas o grupo afetado.
+Veja a [estratégia de testes](docs/testing/test-strategy.md).
+
+### Falha de migration
+
+Não use destructive migration. Verifique os schemas versionados e siga a documentação do
+[banco local](docs/architecture/local-database.md).
+
+### Release sem assinatura ou versão
+
+Use `releaseReadiness` e configure todas as variáveis listadas em
+[build e release](docs/setup/build-release.md). Nunca versione o keystore.
+
+## Contribuição e segurança
+
+Pull Requests são obrigatórios. Leia [CONTRIBUTING.md](CONTRIBUTING.md), siga o
+[Código de Conduta](CODE_OF_CONDUCT.md), use Conventional Commits e preencha o template do PR.
+Vulnerabilidades não devem ser abertas como issue pública; siga [SECURITY.md](SECURITY.md).
+
+CODEOWNERS:
+
+- [Yann Leão](https://github.com/YannLeao);
+- [Ellen Rocha](https://github.com/EllenRocha1);
+- [Clara Ferreira](https://github.com/MClaraFerreira5).
+
+## Licença
+
+Distribuído sob a [Licença MIT](LICENSE). Projeto acadêmico desenvolvido para a disciplina Projeto
+Interdisciplinar de Engenharia da Computação 1 da Universidade Federal Rural de Pernambuco,
+Unidade Acadêmica de Belo Jardim.

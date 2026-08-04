@@ -1,5 +1,7 @@
 # Como contribuir
 
+Ao participar, você concorda em seguir o [Código de Conduta](CODE_OF_CONDUCT.md).
+
 ## Pré-requisitos
 
 - JDK 21;
@@ -22,6 +24,10 @@ adicione credenciais, tokens, keystores ou endpoints privados ao repositório.
 Alterações diretas na `main` não são permitidas. Todo trabalho deve passar por Pull Request,
 revisão e checks obrigatórios. Prefira branches de curta duração e atualize-a com a `main` antes
 da revisão final conforme a política adotada pelo time.
+
+Os checks obrigatórios são `Dependency review`, `Quality and debug APK` e
+`Instrumented tests (API 35)`. Não reinicie um job apenas para obter resultado verde sem registrar e
+corrigir a causa da falha.
 
 ## Conventional Commits
 
@@ -66,7 +72,7 @@ Se o PR alterar câmera, banco, notificações, background ou navegação, regis
 manuais executados. Mudanças de schema devem incluir migration, snapshot atualizado e teste de
 migração.
 
-Não reduza cobertura ou amplie baselines/exclusões sem uma justificativa explícita no PR.
+Não reduza cobertura, amplie exclusões ou adicione supressões sem uma justificativa explícita no PR.
 
 ## Escopo e revisão
 
@@ -77,3 +83,6 @@ Não reduza cobertura ou amplie baselines/exclusões sem uma justificativa expl�
 - Não faça force push depois do início da revisão sem avisar os revisores.
 
 Falhas de segurança não devem ser abertas como issue pública. Siga `SECURITY.md`.
+
+Configuração administrativa, owners e processo de release estão descritos em
+`docs/governance/repository-settings.md`.

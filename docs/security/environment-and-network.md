@@ -70,8 +70,9 @@ não usa essas capacidades. Permanecem:
 - `USE_FULL_SCREEN_INTENT`, usada pelo lembrete de dose categorizado como alarme.
 
 O conteúdo das notificações foi marcado como privado na tela bloqueada. Full-screen intent,
-`showWhenLocked` e `turnScreenOn` permanecem por fazerem parte do fluxo de lembrete crítico, mas
-devem ser reavaliados na Etapa 5 frente às políticas da plataforma e à decisão de produto.
+`showWhenLocked` e `turnScreenOn` permanecem por fazerem parte do fluxo de lembrete crítico. Antes
+de testes públicos e de cada release, esse comportamento deve ser validado contra as políticas da
+plataforma e a decisão de produto.
 
 ## Verificação
 

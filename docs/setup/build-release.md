@@ -5,7 +5,8 @@
 O aplicativo está tecnicamente preparado para gerar APK release assinado, minificado e auditável.
 Backend e API de scan ainda não possuem endpoints definitivos; portanto, APKs gerados com domínios
 `.invalid` são artefatos locais de validação e **não podem ser publicados**. O upload para GitHub
-Release será habilitado somente na Etapa 8, protegido pelo ambiente `production`.
+Release está automatizado por tag e protegido pelo environment `production`, mas permanece bloqueado
+até os endpoints definitivos e secrets serem cadastrados e aprovados.
 
 ## Contrato de configuração
 
@@ -81,7 +82,7 @@ Após os endpoints definitivos existirem:
 
 1. validar o mesmo commit com `qualityCheck`, testes instrumentados e `releaseReadiness`;
 2. criar tag anotada `vMAJOR.MINOR.PATCH` no commit aprovado;
-3. a Etapa 8 materializará o keystore temporariamente e fornecerá endpoints/secrets;
+3. o workflow materializará o keystore temporariamente e fornecerá endpoints/secrets;
 4. o workflow verificará assinatura, budgets, SBOM e checksum antes de anexar o APK;
 5. falha em qualquer gate deve impedir a publicação e remover credenciais temporárias.
 
@@ -98,3 +99,4 @@ fluxo, identifique a classe afetada e adicione a regra mínima.
 
 Uma release não é sobrescrita. Para rollback, corrigir/reverter o commit, incrementar a versão e
 publicar uma nova tag. Se houver risco de credencial, revogar a chave/secret antes da nova versão.
+Consulte o [runbook de rollback e revogação](../release/rollback-runbook.md).
