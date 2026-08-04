@@ -38,7 +38,7 @@ startup e login/listagem/scan; adicionar o módulo somente se o ganho ou uma reg
 
 ## Observabilidade e privacidade
 
-Nenhum SDK externo de crash/analytics foi ativado nesta etapa. O aplicativo trata dados de saúde e
+Nenhum SDK externo de crash/analytics está ativado. O aplicativo trata dados de saúde e
 ainda não há decisão de fornecedor, consentimento, retenção, residência dos dados nem configuração de
 produção. Ativar coleta antes dessas definições contrariaria minimização e privacy by default.
 

@@ -2,7 +2,6 @@
 
 - Status: aceita
 - Data: 2026-08-01
-- Etapa: 2 — Fronteiras arquiteturais e domínio testável
 
 ## Contexto
 
@@ -14,8 +13,7 @@ negócio e mensagens de UI.
 
 ## Decisão
 
-O projeto continuará em módulo único nesta etapa e adotará MVVM com fluxo unidirecional de dados
-(UDF) como arquitetura alvo. A migração de estado da UI ocorrerá incrementalmente na Etapa 3.
+O projeto permanece em módulo único e adota MVVM com fluxo unidirecional de dados (UDF).
 
 As dependências seguem esta direção:
 
@@ -26,7 +24,7 @@ ui -> domain <- data
 ```
 
 - `domain` contém modelos, erros tipados, contratos, relógio, dispatchers e casos de uso puros.
-- `data` implementa contratos e concentra Android, CameraX, ML Kit, Room, Retrofit, OkHttp,
+- `data` implementa contratos e concentra Android, CameraX, Room, Retrofit, OkHttp,
   WorkManager, persistência de sessão e conversões DTO/entity.
 - `ui` depende de casos de uso e modelos do domínio. Integrações estritamente visuais ou de
   lifecycle podem usar adaptadores Android próprios da UI até serem isoladas completamente.
@@ -53,8 +51,10 @@ não devem revelar dados técnicos ou sensíveis.
 ## Consequências
 
 O domínio pode ser testado no JVM sem Android e as integrações ficam substituíveis por fakes. Há
-mais tipos e bindings no Hilt, mas o acoplamento passa a ser explícito. A retirada de `PreviewView` e
-`LifecycleOwner` do fluxo da câmera será concluída na Etapa 3, quando a UI for migrada para UDF.
+mais tipos e bindings no Hilt, mas o acoplamento passa a ser explícito. `PreviewView` e
+`LifecycleOwner` permanecem contidos no adaptador de câmera da UI, sem atravessar a fronteira do
+domínio. O ML Kit, presente no contexto original desta decisão, foi removido quando o scan passou a
+ser responsabilidade do serviço remoto.
 
 ## Rollback
 

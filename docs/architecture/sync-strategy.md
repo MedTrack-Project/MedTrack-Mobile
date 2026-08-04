@@ -24,8 +24,9 @@ Ao confirmar um medicamento:
 3. Envia a confirmacao para a API.
 4. Persiste ou atualiza `ConfirmacaoEntity` como sincronizada em transacao.
 
-Uma falha remota nao cria confirmacao local incorretamente marcada como concluida. O fluxo
-offline-first de confirmacoes duraveis permanece planejado para a Etapa 5.
+Uma falha remota nao cria confirmacao local incorretamente marcada como concluida. Confirmações
+duráveis offline ainda não estão implementadas e permanecem como limitação conhecida para um PR
+funcional próprio.
 
 ### Scans offline
 
