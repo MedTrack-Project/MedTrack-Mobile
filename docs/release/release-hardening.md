@@ -52,11 +52,11 @@ Até essa decisão:
 Para adotar um fornecedor, criar ADR e implementar coleta desabilitada por padrão, consentimento
 revogável, redaction testada, ambientes separados, retenção mínima e teste de payload. São proibidos:
 JWT, credenciais, request/response bodies, URL de imagem, nome/posologia, identificadores de usuário e
-arquivos capturados. A Etapa 8 só pode fazer upload de mapping ao fornecedor após essa aprovação.
+arquivos capturados. O workflow não envia mapping a fornecedor; isso exige aprovação e ADR próprios.
 
 ## Supply chain
 
-`./gradlew :app:cyclonedxDirectBom` gera SBOM CycloneDX 1.6. Na Etapa 8, os arquivos serão artifacts privados e
+`./gradlew :app:cyclonedxDirectBom` gera SBOM CycloneDX 1.6. No workflow, os arquivos são artifacts privados e
 entrada de um scanner de vulnerabilidades/dependency review e da auditoria de licenças. A resolução
 remota de metadados fica desabilitada no Gradle para tornar a geração determinística; o scanner da CI
 deve enriquecer o inventário. Vulnerabilidade alta/crítica explorável deve bloquear release; exceções
@@ -69,4 +69,4 @@ da distribuição.
 - smoke test de sucesso ponta a ponta;
 - escolha jurídica/técnica do fornecedor de observabilidade;
 - métricas representativas para decidir Baseline Profile;
-- workflow e proteção do ambiente `production` (Etapa 8).
+- configuração administrativa e aprovação do environment `production`.
