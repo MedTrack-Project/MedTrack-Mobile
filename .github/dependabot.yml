@@ -1,0 +1,70 @@
+version: 2
+updates:
+    - package-ecosystem: gradle
+      directory: /
+      target-branch: main
+      schedule:
+          interval: weekly
+          day: monday
+          time: "09:00"
+          timezone: America/Sao_Paulo
+      open-pull-requests-limit: 6
+      reviewers:
+          - YannLeao
+          - EllenRocha1
+          - MClaraFerreira5
+      labels:
+          - dependencies
+          - android
+      groups:
+          android-toolchain:
+              patterns:
+                  - com.android.*
+                  - org.jetbrains.kotlin.*
+                  - com.google.devtools.ksp
+          androidx-compose:
+              patterns:
+                  - androidx.compose.*
+                  - androidx.activity:activity-compose
+                  - androidx.lifecycle:lifecycle-runtime-compose
+                  - androidx.navigation:navigation-compose
+          androidx-runtime:
+              patterns:
+                  - androidx.*
+              exclude-patterns:
+                  - androidx.compose.*
+                  - androidx.activity:activity-compose
+                  - androidx.lifecycle:lifecycle-runtime-compose
+                  - androidx.navigation:navigation-compose
+          networking:
+              patterns:
+                  - com.squareup.retrofit2:*
+                  - com.squareup.okhttp3:*
+                  - com.google.code.gson:gson
+          quality-tooling:
+              patterns:
+                  - io.gitlab.arturbosch.detekt
+                  - org.jlleitschuh.gradle.ktlint
+                  - org.jetbrains.kotlinx.kover
+                  - org.cyclonedx.bom
+
+    - package-ecosystem: github-actions
+      directory: /
+      target-branch: main
+      schedule:
+          interval: weekly
+          day: monday
+          time: "09:30"
+          timezone: America/Sao_Paulo
+      open-pull-requests-limit: 4
+      reviewers:
+          - YannLeao
+          - EllenRocha1
+          - MClaraFerreira5
+      labels:
+          - dependencies
+          - ci
+      groups:
+          github-actions:
+              patterns:
+                  - "*"

@@ -10,6 +10,10 @@
 
 <!-- Inclua comandos, resultados, screenshots ou vídeos relevantes. Não inclua dados sensíveis. -->
 
+## Alterações visuais
+
+<!-- Inclua antes/depois quando houver UI. Caso contrário, escreva "Não se aplica". -->
+
 ## Riscos e rollback
 
 <!-- Descreva impacto, compatibilidade, migration e como reverter, quando aplicável. -->
@@ -25,6 +29,9 @@
 - [ ] A cobertura dos pacotes tocados não foi reduzida sem justificativa.
 - [ ] Registrei testes manuais para câmera, notificação, migração, background ou navegação.
 - [ ] Não incluí secrets, endpoints antigos, credenciais ou dados reais de pacientes.
+- [ ] Revisei logs, artifacts, screenshots e payloads quanto a dados pessoais ou de saúde.
+- [ ] Alterações visuais incluem evidência e verificação de acessibilidade, quando aplicável.
+- [ ] Mudanças de release preservam assinatura, versionamento, checksum, SBOM e rollback.
 - [ ] Atualizei documentação/ADR quando alterei uma decisão técnica.
 - [ ] Documentei rollback para migration, autenticação ou release.
 - [ ] Não misturei upgrade amplo de dependências com refatoração funcional.

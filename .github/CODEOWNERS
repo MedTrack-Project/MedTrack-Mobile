@@ -1,0 +1,11 @@
+# Revisão compartilhada do projeto.
+* @YannLeao @EllenRocha1 @MClaraFerreira5
+
+# Mudanças de supply chain, release e segurança exigem revisão explícita dos owners.
+/.github/ @YannLeao @EllenRocha1 @MClaraFerreira5
+/gradle/ @YannLeao @EllenRocha1 @MClaraFerreira5
+/app/build.gradle.kts @YannLeao @EllenRocha1 @MClaraFerreira5
+/build.gradle.kts @YannLeao @EllenRocha1 @MClaraFerreira5
+/SECURITY.md @YannLeao @EllenRocha1 @MClaraFerreira5
+/config/release/ @YannLeao @EllenRocha1 @MClaraFerreira5
+/scripts/release/ @YannLeao @EllenRocha1 @MClaraFerreira5
