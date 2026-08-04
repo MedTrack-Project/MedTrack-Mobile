@@ -20,12 +20,12 @@ jobs:
         timeout-minutes: 10
         steps:
             - name: Checkout
-              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
 
             - name: Review dependency changes
-              uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+              uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
               with:
                   fail-on-severity: high
                   license-check: true
@@ -36,7 +36,7 @@ jobs:
         timeout-minutes: 45
         steps:
             - name: Checkout
-              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
 
@@ -82,7 +82,7 @@ jobs:
         timeout-minutes: 50
         steps:
             - name: Checkout
-              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   persist-credentials: false
 
@@ -106,7 +106,7 @@ jobs:
                   sudo udevadm trigger --name-match=kvm
 
             - name: Run instrumented suite
-              uses: ReactiveCircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808 # v2
+              uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
               with:
                   api-level: 35
                   target: google_apis
