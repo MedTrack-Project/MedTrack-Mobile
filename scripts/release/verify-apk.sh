@@ -12,12 +12,23 @@ if [[ ! -f "$apk_path" ]]; then
   exit 2
 fi
 
-for tool in apksigner apkanalyzer sha256sum; do
-  if ! command -v "$tool" >/dev/null 2>&1; then
-    echo "Ferramenta obrigatória ausente no PATH: $tool" >&2
-    exit 2
+resolve_android_tool() {
+  local tool="$1"
+  if command -v "$tool" >/dev/null 2>&1; then
+    command -v "$tool"
+    return
   fi
-done
+  if [[ -n "${ANDROID_HOME:-}" ]]; then
+    find "$ANDROID_HOME" -type f -name "$tool" -perm -u+x 2>/dev/null | sort -V | tail -n 1
+  fi
+}
+
+apksigner_path="$(resolve_android_tool apksigner)"
+apkanalyzer_path="$(resolve_android_tool apkanalyzer)"
+if [[ -z "$apksigner_path" || -z "$apkanalyzer_path" ]] || ! command -v sha256sum >/dev/null 2>&1; then
+  echo "apksigner, apkanalyzer e sha256sum são obrigatórios." >&2
+  exit 2
+fi
 
 budget_file="$(dirname "$0")/../../config/release/budgets.properties"
 max_bytes="$(sed -n 's/^maxApkSizeBytes=//p' "$budget_file")"
@@ -27,9 +38,9 @@ if (( apk_bytes > max_bytes )); then
   exit 1
 fi
 
-apksigner verify --verbose "$apk_path"
-version_name="$(apkanalyzer manifest version-name "$apk_path")"
-version_code="$(apkanalyzer manifest version-code "$apk_path")"
+"$apksigner_path" verify --verbose "$apk_path"
+version_name="$("$apkanalyzer_path" manifest version-name "$apk_path")"
+version_code="$("$apkanalyzer_path" manifest version-code "$apk_path")"
 
 apk_directory="$(dirname "$apk_path")"
 apk_name="$(basename "$apk_path")"

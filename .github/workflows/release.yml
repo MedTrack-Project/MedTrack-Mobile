@@ -1,0 +1,198 @@
+name: Release APK
+
+on:
+    push:
+        tags:
+            - "v*.*.*"
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    release:
+        name: Signed release APK
+        runs-on: ubuntu-24.04
+        timeout-minutes: 90
+        environment: production
+        env:
+            MEDTRACK_RELEASE_TAG: ${{ github.ref_name }}
+            MEDTRACK_API_BASE_URL: ${{ secrets.MEDTRACK_API_BASE_URL }}
+            MEDTRACK_SCAN_URL: ${{ secrets.MEDTRACK_SCAN_URL }}
+            MEDTRACK_KEYSTORE_BASE64: ${{ secrets.MEDTRACK_KEYSTORE_BASE64 }}
+            MEDTRACK_KEYSTORE_PASSWORD: ${{ secrets.MEDTRACK_KEYSTORE_PASSWORD }}
+            MEDTRACK_KEY_ALIAS: ${{ secrets.MEDTRACK_KEY_ALIAS }}
+            MEDTRACK_KEY_PASSWORD: ${{ secrets.MEDTRACK_KEY_PASSWORD }}
+        steps:
+            - name: Checkout tagged commit
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Validate stable tag and protected configuration
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  [[ "$MEDTRACK_RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+                    echo "A release exige uma tag estável vMAJOR.MINOR.PATCH." >&2
+                    exit 1
+                  }
+                  for variable in \
+                    MEDTRACK_API_BASE_URL \
+                    MEDTRACK_SCAN_URL \
+                    MEDTRACK_KEYSTORE_BASE64 \
+                    MEDTRACK_KEYSTORE_PASSWORD \
+                    MEDTRACK_KEY_ALIAS \
+                    MEDTRACK_KEY_PASSWORD; do
+                    [[ -n "${!variable:-}" ]] || {
+                      echo "Configuração obrigatória ausente: $variable" >&2
+                      exit 1
+                    }
+                  done
+                  [[ "$MEDTRACK_API_BASE_URL" == https://* ]] || exit 1
+                  [[ "$MEDTRACK_SCAN_URL" == https://* ]] || exit 1
+                  [[ "$MEDTRACK_API_BASE_URL" != *invalid* && "$MEDTRACK_SCAN_URL" != *invalid* ]] || exit 1
+                  [[ "$MEDTRACK_API_BASE_URL" != *localhost* && "$MEDTRACK_SCAN_URL" != *localhost* ]] || exit 1
+                  [[ "$MEDTRACK_API_BASE_URL" != *10.0.2.2* && "$MEDTRACK_SCAN_URL" != *10.0.2.2* ]] || exit 1
+                  git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+                    echo "A tag de release deve apontar para um commit presente na main." >&2
+                    exit 1
+                  }
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+              with:
+                  distribution: temurin
+                  java-version: "21"
+
+            - name: Validate wrapper and set up Gradle
+              uses: gradle/actions/setup-gradle@4733eaac7c1b0da527e4206b7671e0061de1ce37 # v6
+              with:
+                  validate-wrappers: true
+                  cache-read-only: true
+
+            - name: Materialize temporary keystore
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  umask 077
+                  keystore_path="$RUNNER_TEMP/medtrack-release.jks"
+                  printf '%s' "$MEDTRACK_KEYSTORE_BASE64" | base64 --decode >"$keystore_path"
+                  [[ -s "$keystore_path" ]] || {
+                    echo "O keystore decodificado está vazio." >&2
+                    exit 1
+                  }
+                  echo "MEDTRACK_KEYSTORE_FILE=$keystore_path" >>"$GITHUB_ENV"
+
+            - name: Run quality gates
+              run: ./gradlew qualityCheck --no-daemon --stacktrace
+
+            - name: Build, shrink, sign and inventory release
+              run: ./gradlew releaseReadiness --no-daemon --stacktrace
+
+            - name: Validate APK and prepare deterministic assets
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  apk="app/build/outputs/apk/release/app-release.apk"
+                  expected_version="${MEDTRACK_RELEASE_TAG#v}"
+                  apkanalyzer_path="$(find "$ANDROID_HOME" -type f -name apkanalyzer -perm -u+x | sort -V | tail -n 1)"
+                  [[ -n "$apkanalyzer_path" ]] || {
+                    echo "apkanalyzer não encontrado no Android SDK." >&2
+                    exit 1
+                  }
+                  actual_version="$("$apkanalyzer_path" manifest version-name "$apk")"
+                  [[ "$actual_version" == "$expected_version" ]] || {
+                    echo "A versão do APK não corresponde à tag." >&2
+                    exit 1
+                  }
+                  scripts/release/verify-apk.sh "$apk"
+                  assets="$RUNNER_TEMP/release-assets"
+                  mkdir -p "$assets"
+                  release_apk="$assets/medtrack-${MEDTRACK_RELEASE_TAG}.apk"
+                  cp "$apk" "$release_apk"
+                  (
+                    cd "$assets"
+                    sha256sum "$(basename "$release_apk")" >"$(basename "$release_apk").sha256"
+                  )
+
+            - name: Upload private release evidence
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+              with:
+                  name: release-evidence-${{ github.ref_name }}
+                  if-no-files-found: error
+                  retention-days: 30
+                  path: |
+                      ${{ runner.temp }}/release-assets/
+                      app/build/outputs/mapping/release/mapping.txt
+                      app/build/reports/cyclonedx-direct/bom.json
+                      app/build/reports/cyclonedx-direct/bom.xml
+
+            - name: Create draft GitHub Release assets
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  apk="$RUNNER_TEMP/release-assets/medtrack-${MEDTRACK_RELEASE_TAG}.apk"
+                  checksum="${apk}.sha256"
+                  if gh release view "$MEDTRACK_RELEASE_TAG" >/dev/null 2>&1; then
+                    gh release upload "$MEDTRACK_RELEASE_TAG" "$apk" "$checksum" --clobber
+                  else
+                    gh release create "$MEDTRACK_RELEASE_TAG" "$apk" "$checksum" \
+                      --verify-tag \
+                      --draft \
+                      --title "MedTrack ${MEDTRACK_RELEASE_TAG}" \
+                      --generate-notes
+                  fi
+
+            - name: Download and verify draft assets
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  downloaded="$RUNNER_TEMP/downloaded-release"
+                  mkdir -p "$downloaded"
+                  gh release download "$MEDTRACK_RELEASE_TAG" \
+                    --dir "$downloaded" \
+                    --pattern "medtrack-${MEDTRACK_RELEASE_TAG}.apk*"
+                  (
+                    cd "$downloaded"
+                    sha256sum --check "medtrack-${MEDTRACK_RELEASE_TAG}.apk.sha256"
+                  )
+
+            - name: Enable KVM
+              run: |
+                  echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+                    | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+                  sudo udevadm control --reload-rules
+                  sudo udevadm trigger --name-match=kvm
+
+            - name: Install and launch downloaded release APK
+              uses: ReactiveCircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808 # v2
+              with:
+                  api-level: 35
+                  target: google_apis
+                  arch: x86_64
+                  profile: pixel_6
+                  disable-animations: true
+                  emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+                  script: |
+                      adb install "$RUNNER_TEMP/downloaded-release/medtrack-${MEDTRACK_RELEASE_TAG}.apk"
+                      adb shell am start -W -n com.medtrack.mobile/.MainActivity
+                      adb shell pidof com.medtrack.mobile
+
+            - name: Publish verified GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh release edit "$MEDTRACK_RELEASE_TAG" --draft=false
+
+            - name: Remove temporary credentials
+              if: always()
+              shell: bash
+              run: rm -f "$RUNNER_TEMP/medtrack-release.jks"
