@@ -1,6 +1,7 @@
 # Visao Geral da Arquitetura
 
-O MedTrack Mobile e um aplicativo Android nativo em Kotlin para acompanhamento de medicacao, validacao por camera/OCR, notificacoes e sincronizacao com backend.
+O MedTrack Mobile é um aplicativo Android nativo em Kotlin para acompanhamento de medicação,
+captura por câmera, validação pela API de scan, notificações e sincronização com backend.
 
 ## Arquitetura adotada
 

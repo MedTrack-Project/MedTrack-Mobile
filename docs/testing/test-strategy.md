@@ -15,11 +15,11 @@ Compose.
 | P1 | scan online/offline | repository/use case/Worker | scan |
 | P1 | lembrete e deep link | contrato instrumentado + navegação JVM | notifications |
 | P1 | estados críticos de UI | Compose semantics | ui |
-| P2 | câmera e ML Kit | adapters de câmera/detecção + dispositivo | camera |
+| P2 | câmera | adapter CameraX + dispositivo | camera |
 
-CameraX e ML Kit permanecem isolados da UI por `CameraController`, `CameraService` e
-`DetectionService`. Testes de dispositivo desse contexto devem usar imagens sintéticas pequenas e
-sem informações pessoais; respostas reais de backend ou IA não são fixtures determinísticas.
+CameraX permanece isolado da UI por `CameraController` e `CameraService`. O app não faz detecção
+local: a API de scan é responsável pelo reconhecimento. Testes devem usar imagens sintéticas pequenas
+e sem informações pessoais; respostas reais de backend ou IA não são fixtures determinísticas.
 
 ## Execução
 

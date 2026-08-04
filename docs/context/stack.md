@@ -37,11 +37,10 @@
 - Hilt
 - KSP
 
-## Camera, OCR e processamento
+## Câmera e processamento
 
-- CameraX
-- ML Kit Text Recognition
-- ML Kit Object Detection
+- CameraX para preview e captura
+- Retrofit/WorkManager para scan remoto online e enfileirado
 
 ## Jobs e notificacoes
 
