@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kover) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.cyclonedx) apply false
 }
 
 tasks.register("qualityCheck") {
@@ -24,6 +25,15 @@ tasks.register("qualityCheck") {
         ":app:koverXmlReportDebug",
         ":app:koverHtmlReportDebug",
         "checkSecrets",
+    )
+}
+
+tasks.register("releaseReadiness") {
+    group = "verification"
+    description = "Gera APK assinado/minificado, valida tamanho e produz inventário/SBOM."
+    dependsOn(
+        ":app:verifyReleaseApkSize",
+        ":app:cyclonedxDirectBom",
     )
 }
 

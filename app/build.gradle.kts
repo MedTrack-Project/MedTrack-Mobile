@@ -1,6 +1,8 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import java.io.File
 import java.net.URI
 import java.util.Properties
+import org.cyclonedx.model.Component
 
 plugins {
     alias(libs.plugins.android.application)
@@ -10,6 +12,7 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.cyclonedx)
 }
 
 val localProperties = Properties().apply {
@@ -48,13 +51,60 @@ fun validatedEndpoint(name: String, value: String, allowHttp: Boolean, requireTr
 
 fun buildConfigString(value: String): String = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
+val releaseArtifactTasks = setOf("assemblerelease", "bundlerelease")
+val releaseEntryTasks = releaseArtifactTasks + setOf("releasereadiness", "verifyreleaseapksize")
 val releaseWasRequested = gradle.startParameter.taskNames.any { taskName ->
-    val normalized = taskName.lowercase()
-    normalized.contains("release") ||
-        normalized.endsWith("assemble") ||
-        normalized.endsWith("bundle") ||
-        normalized.endsWith("build")
+    taskName.substringAfterLast(':').lowercase() in releaseEntryTasks
 }
+
+data class ReleaseVersion(val name: String, val code: Int)
+
+fun parseReleaseTag(tag: String): ReleaseVersion {
+    val match = Regex("^v(\\d+)\\.(\\d+)\\.(\\d+)(?:-[0-9A-Za-z.-]+)?$").matchEntire(tag)
+        ?: throw GradleException("MEDTRACK_RELEASE_TAG deve seguir vMAJOR.MINOR.PATCH, com pre-release opcional.")
+    val (major, minor, patch) = match.destructured
+    val components = listOf(major.toInt(), minor.toInt(), patch.toInt())
+    require(components[0] <= 2_000 && components[1] <= 999 && components[2] <= 999) {
+        "MEDTRACK_RELEASE_TAG excede os limites de versionCode (major <= 2000; minor/patch <= 999)."
+    }
+    val versionCode = (components[0] * 1_000_000 + components[1] * 1_000 + components[2]).coerceAtLeast(1)
+    return ReleaseVersion(name = tag.removePrefix("v"), code = versionCode)
+}
+
+val releaseTag = if (releaseWasRequested) {
+    projectConfig("MEDTRACK_RELEASE_TAG")
+        ?: providers.environmentVariable("GITHUB_REF_NAME").orNull
+        ?: throw GradleException("MEDTRACK_RELEASE_TAG e obrigatoria para builds de release.")
+} else {
+    null
+}
+val releaseVersion = if (releaseTag != null) {
+    parseReleaseTag(releaseTag.trim())
+} else {
+    ReleaseVersion(name = "0.0.0-dev", code = 1)
+}
+
+fun requiredReleaseConfig(name: String): String = projectConfig(name)
+    ?: throw GradleException("$name e obrigatoria para builds de release.")
+
+fun requiredReleaseSecret(name: String): String {
+    val value = providers.environmentVariable(name).orNull
+        ?: providers.gradleProperty(name).orNull
+        ?: localProperties.getProperty(name)
+        ?: throw GradleException("$name e obrigatoria para builds de release.")
+    require(value.isNotEmpty()) { "$name nao pode ser vazia." }
+    return value
+}
+
+val releaseKeystore = if (releaseWasRequested) {
+    File(requiredReleaseConfig("MEDTRACK_KEYSTORE_FILE")).also { file ->
+        require(file.isFile) { "MEDTRACK_KEYSTORE_FILE deve apontar para um arquivo existente." }
+    }
+} else {
+    null
+}
+
+version = releaseVersion.name
 
 val debugApiBaseUrl = validatedEndpoint(
     name = "MEDTRACK_API_BASE_URL",
@@ -73,7 +123,7 @@ fun releaseEndpoint(name: String, requireTrailingSlash: Boolean): String {
     val placeholder = "https://configuration-required.invalid${if (requireTrailingSlash) "/" else "/detect"}"
     if (!releaseWasRequested) return placeholder
 
-    val configuredValue = projectConfig(name) ?: throw GradleException("$name e obrigatoria para builds de release.")
+    val configuredValue = requiredReleaseConfig(name)
 
     return validatedEndpoint(
         name = name,
@@ -92,9 +142,24 @@ android {
         minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = releaseVersion.code
+        versionName = releaseVersion.name
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (releaseWasRequested) {
+            create("release") {
+                storeFile = checkNotNull(releaseKeystore)
+                storePassword = requiredReleaseSecret("MEDTRACK_KEYSTORE_PASSWORD")
+                keyAlias = requiredReleaseSecret("MEDTRACK_KEY_ALIAS")
+                keyPassword = requiredReleaseSecret("MEDTRACK_KEY_PASSWORD")
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+                enableV4Signing = true
+            }
+        }
     }
 
     buildTypes {
@@ -103,6 +168,7 @@ android {
             buildConfigField("String", "MEDTRACK_SCAN_URL", buildConfigString(debugScanUrl))
         }
         release {
+            signingConfig = signingConfigs.findByName("release")
             buildConfigField(
                 "String",
                 "MEDTRACK_API_BASE_URL",
@@ -113,7 +179,8 @@ android {
                 "MEDTRACK_SCAN_URL",
                 buildConfigString(releaseEndpoint("MEDTRACK_SCAN_URL", requireTrailingSlash = false)),
             )
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -134,14 +201,6 @@ android {
         compose = true
         buildConfig = true
     }
-    packaging {
-        jniLibs.keepDebugSymbols += setOf(
-            "**/libandroidx.graphics.path.so",
-            "**/libimage_processing_util_jni.so",
-            "**/libmlkitcommonpipeline.so",
-            "**/libsurface_util_jni.so",
-        )
-    }
     sourceSets.getByName("androidTest").assets.directories.add("$projectDir/schemas")
 }
 
@@ -150,6 +209,14 @@ val validateReleaseConfiguration = tasks.register("validateReleaseConfiguration"
     description = "Valida endpoints HTTPS obrigatorios antes de qualquer tarefa de release."
 
     doLast {
+        check(releaseWasRequested) {
+            "Use assembleRelease, bundleRelease, verifyReleaseApkSize ou releaseReadiness."
+        }
+        parseReleaseTag(checkNotNull(releaseTag))
+        checkNotNull(releaseKeystore)
+        requiredReleaseSecret("MEDTRACK_KEYSTORE_PASSWORD")
+        requiredReleaseSecret("MEDTRACK_KEY_ALIAS")
+        requiredReleaseSecret("MEDTRACK_KEY_PASSWORD")
         validatedEndpoint(
             name = "MEDTRACK_API_BASE_URL",
             value = projectConfig("MEDTRACK_API_BASE_URL")
@@ -168,9 +235,44 @@ val validateReleaseConfiguration = tasks.register("validateReleaseConfiguration"
 }
 
 tasks.configureEach {
-    if (name.contains("release", ignoreCase = true) && name != validateReleaseConfiguration.name) {
+    if (name.lowercase() in releaseArtifactTasks) {
         dependsOn(validateReleaseConfiguration)
     }
+}
+
+val releaseBudgets = Properties().apply {
+    rootProject.file("config/release/budgets.properties").inputStream().use(::load)
+}
+
+tasks.register("verifyReleaseApkSize") {
+    group = "verification"
+    description = "Falha quando o APK release excede o budget versionado."
+    dependsOn("assembleRelease")
+
+    doLast {
+        val apkFiles = layout.buildDirectory.dir("outputs/apk/release").get().asFileTree
+            .matching { include("*.apk") }
+            .files
+        check(apkFiles.size == 1) {
+            "Era esperado exatamente um APK release, encontrados: ${apkFiles.joinToString { it.name }}"
+        }
+        val maximumBytes = releaseBudgets.getProperty("maxApkSizeBytes").toLong()
+        val apk = apkFiles.single()
+        check(apk.length() <= maximumBytes) {
+            "${apk.name} possui ${apk.length()} bytes e excede o budget de $maximumBytes bytes."
+        }
+        logger.lifecycle("APK release dentro do budget: ${apk.length()} / $maximumBytes bytes.")
+    }
+}
+
+tasks.cyclonedxDirectBom {
+    includeConfigs = listOf("releaseRuntimeClasspath")
+    projectType = Component.Type.APPLICATION
+    componentName = "medtrack-mobile"
+    componentVersion = releaseVersion.name
+    includeBuildEnvironment = false
+    includeMetadataResolution = false
+    includeLicenseText = false
 }
 
 ksp {
@@ -306,7 +408,6 @@ dependencies {
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.camera.camera2.pipe)
     debugImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
@@ -314,11 +415,7 @@ dependencies {
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.video)
     implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.extensions)
-    implementation(libs.google.mlkit.text.recognition)
-    implementation(libs.google.mlkit.objects.detection)
     implementation(libs.squareup.retrofit2.retrofit)
     implementation(libs.squareup.retrofit2.converter.gson)
     implementation(libs.squareup.okhttp3.logging.interceptor)
