@@ -1,5 +1,7 @@
 # Como contribuir
 
+Ao participar, você concorda em seguir o [Código de Conduta](CODE_OF_CONDUCT.md).
+
 ## Pré-requisitos
 
 - JDK 21;
@@ -70,7 +72,7 @@ Se o PR alterar câmera, banco, notificações, background ou navegação, regis
 manuais executados. Mudanças de schema devem incluir migration, snapshot atualizado e teste de
 migração.
 
-Não reduza cobertura ou amplie baselines/exclusões sem uma justificativa explícita no PR.
+Não reduza cobertura, amplie exclusões ou adicione supressões sem uma justificativa explícita no PR.
 
 ## Escopo e revisão
 

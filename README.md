@@ -4,9 +4,10 @@ Aplicativo Android nativo para acompanhamento de medicamentos, lembretes de dose
 foto. CameraX captura a imagem e a API de scan realiza o reconhecimento; quando não há conexão, o
 WorkManager mantém o envio na fila.
 
-O projeto está em modernização e os endpoints definitivos do backend e do scan ainda não estão
-disponíveis. Builds debug podem usar serviços locais. Um APK release somente pode ser publicado após
-configuração e aprovação do environment `production`.
+O repositório possui gates de qualidade, testes e entrega automatizada. Os endpoints definitivos do
+backend e do scan ainda não estão disponíveis; builds debug podem usar serviços locais. Um APK
+release somente pode ser publicado após a configuração dos serviços e a aprovação do environment
+`production`.
 
 ## Stack
 
@@ -171,9 +172,9 @@ Use `releaseReadiness` e configure todas as variáveis listadas em
 
 ## Contribuição e segurança
 
-Pull Requests são obrigatórios. Leia [CONTRIBUTING.md](CONTRIBUTING.md), use Conventional Commits e
-preencha o template do PR. Vulnerabilidades não devem ser abertas como issue pública; siga
-[SECURITY.md](SECURITY.md).
+Pull Requests são obrigatórios. Leia [CONTRIBUTING.md](CONTRIBUTING.md), siga o
+[Código de Conduta](CODE_OF_CONDUCT.md), use Conventional Commits e preencha o template do PR.
+Vulnerabilidades não devem ser abertas como issue pública; siga [SECURITY.md](SECURITY.md).
 
 CODEOWNERS:
 
@@ -183,5 +184,6 @@ CODEOWNERS:
 
 ## Licença
 
-Projeto acadêmico desenvolvido para a disciplina Projeto Interdisciplinar de Engenharia da
-Computação 1 da Universidade Federal Rural de Pernambuco, Unidade Acadêmica de Belo Jardim.
+Distribuído sob a [Licença MIT](LICENSE). Projeto acadêmico desenvolvido para a disciplina Projeto
+Interdisciplinar de Engenharia da Computação 1 da Universidade Federal Rural de Pernambuco,
+Unidade Acadêmica de Belo Jardim.
