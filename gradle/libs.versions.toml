@@ -28,7 +28,7 @@ detekt = "1.23.8"
 cyclonedx = "3.2.4"
 foundation = "1.11.2"
 guava = "33.6.0-android"
-hilt = "2.59.2"
+hilt = "2.60.1"
 
 
 [libraries]
